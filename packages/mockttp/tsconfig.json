@@ -1,0 +1,24 @@
+{
+    "compilerOptions": {
+        "target": "es6",
+        "module": "commonjs",
+        "outDir": "./dist",
+        "declaration": true,
+        "sourceMap": true,
+        "strict": true,
+        "lib": [
+            "dom",
+            "es2015",
+            "scripthost"
+        ],
+        "paths": {
+            "@httptoolkit/proxy-agent": ["./custom-typings/proxy-agent.d.ts"]
+        }
+    },
+    "compileOnSave": true,
+    "buildOnSave": true,
+    "include": [
+        "custom-typings/*.d.ts",
+        "src/**/*.ts"
+    ]
+}
