@@ -1,7 +1,7 @@
 import * as mockttp from 'mockttp';
 import path from 'path';
-import {PmsModule} from "./cores/module";
-import {PmsOkRuModule} from "./modules/ok-ru";
+import {PmsModule} from "@cores/module";
+import {PmsOkRuModule} from "@modules/ok-ru";
 
 (async () => {
     // Create a proxy server with a self-signed HTTPS CA certificate:
@@ -21,6 +21,7 @@ import {PmsOkRuModule} from "./modules/ok-ru";
     }))
 
     await server.forUnmatchedRequest().thenPassThrough();
+    await server.forAnyWebSocket().thenPassThrough();
     await server.start(1234);
 
     // Print out the server details:

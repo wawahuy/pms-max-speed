@@ -1,8 +1,8 @@
-import {PmsModule} from "../cores/module";
 import Url from 'url';
 import requestLib from 'request';
-import {SmartSpeed} from "../cores/smart-speed";
-import {PmsResponse, PmsWaiterResponse} from "../cores/types";
+import {SmartSpeed} from "@cores/smart-speed";
+import {PmsModule} from "@cores/module";
+import {PmsResponse, PmsWaiterResponse} from "@cores/types";
 
 export class PmsOkRuModule extends PmsModule {
     url: Url.UrlWithParsedQuery;
@@ -78,7 +78,13 @@ export class PmsOkRuModule extends PmsModule {
         }
     }
 
+    static test = false;
     async splitSegment() {
+        // if (!PmsOkRuModule.test) {
+        //     console.log('wait')
+        //     PmsOkRuModule.test = true;
+        //     await new Promise(res => setTimeout(() => { console.log('end'); res(null); }, 100000));
+        // }
         const perSegment = PmsOkRuModule.smartSpeed.speed;
         let currentSegment = this.startSegment - 1;
         let waitList: PmsWaiterResponse[] = []

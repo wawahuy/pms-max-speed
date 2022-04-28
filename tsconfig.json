@@ -21,7 +21,12 @@
       "typeRoots": [
         "./src/types",
         "./node_modules/@types"
-      ]
+      ],
+      "baseUrl": "./src",
+      "paths": {
+        "@cores/*": ["cores/*"],
+        "@modules/*": ["modules/*"]
+      }
   },
   "ts-node": {
     "transpileOnly": true
