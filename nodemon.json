@@ -1,5 +1,5 @@
 {
-  "watch": ["src"],
+  "watch": ["src", "packages/mockttp/dist"],
   "ext": ".ts,.js",
   "ignore": [],
   "exec": "ts-node -r tsconfig-paths/register ./src/index.ts"
