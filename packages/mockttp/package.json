@@ -62,7 +62,7 @@
   "scripts": {
     "prebuild": "rimraf dist/*",
     "build": "npm run build:src && npm run build:doc",
-    "build:src": "tsc && chmod +x ./dist/admin/admin-bin.js",
+    "build:src": "tsc",
     "build:doc": "typedoc src/main.ts",
     "postbuild:doc": "touch ./typedoc/.nojekyll",
     "test": "npm run build && npm run test:node && npm run test:browser",
@@ -73,10 +73,6 @@
     "with-admin": "TS_NODE_FILES=true ts-node ./src/admin/admin-bin.ts -c ",
     "ci-tests": "npm run test && catch-uncommitted",
     "prepack": "npm run build"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/httptoolkit/mockttp.git"
   },
   "keywords": [
     "testing",
