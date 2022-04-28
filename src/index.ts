@@ -16,6 +16,7 @@ import {PmsOkRuModule} from "@modules/ok-ru";
         PmsOkRuModule
     ]
 
+
     await Promise.all(modules.map(moduleClazz => {
         return server.forGet(moduleClazz.matcher()).thenCallback(PmsModule.create(moduleClazz));
     }))

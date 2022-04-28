@@ -60,7 +60,6 @@ export class PmsOkRuModule extends PmsModule {
         const option: requestLib.CoreOptions = {
             headers: this.request.headers,
             encoding: null,
-            timeout: 20000
         }
         let t = new Date().getTime();
         const request = requestLib(url, option, (err, response) => {
@@ -80,11 +79,6 @@ export class PmsOkRuModule extends PmsModule {
 
     static test = false;
     async splitSegment() {
-        // if (!PmsOkRuModule.test) {
-        //     console.log('wait')
-        //     PmsOkRuModule.test = true;
-        //     await new Promise(res => setTimeout(() => { console.log('end'); res(null); }, 100000));
-        // }
         const perSegment = PmsOkRuModule.smartSpeed.speed;
         let currentSegment = this.startSegment - 1;
         let waitList: PmsWaiterResponse[] = []
@@ -102,6 +96,16 @@ export class PmsOkRuModule extends PmsModule {
             }
         }
 
+        let timeout: NodeJS.Timeout | undefined = undefined;
+        const resetTimeout = () => {
+            if (timeout) {
+                clearTimeout(timeout);
+            }
+            timeout = setTimeout(() => {
+                closeAll();
+            }, 2000);
+        }
+
         do {
             let s = currentSegment + 1;
             let e = s + perSegment;
@@ -111,6 +115,7 @@ export class PmsOkRuModule extends PmsModule {
 
             const p = this.loadSegment(s, e);
             p.waiter.then(res => {
+                resetTimeout();
                 if (!!res.err) {
                     closeAll();
                 }
@@ -122,6 +127,7 @@ export class PmsOkRuModule extends PmsModule {
 
         const time = new Date().getTime();
         const result = await Promise.all(waitList.map(item => item.waiter));
+        clearTimeout(timeout)
 
         if (result.find(item => !!item.err)) {
             return;
