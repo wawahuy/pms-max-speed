@@ -3,12 +3,14 @@ import requestLib from 'request';
 import {SmartSpeed} from "@cores/smart-speed";
 import {PmsModule} from "@cores/module";
 import {PmsResponse, PmsWaiterResponse} from "@cores/types";
+import {PmsOkRuCachedManager} from "@modules/ok-ru/cached-manager";
 
 export class PmsOkRuModule extends PmsModule {
     url: Url.UrlWithParsedQuery;
     startSegment: number;
     endSegment: number;
 
+    public static cachedManager: PmsOkRuCachedManager = new PmsOkRuCachedManager();
     private static smartSpeed: SmartSpeed = new SmartSpeed('Ok.ru');
 
     static matcher(): RegExp {
@@ -17,6 +19,7 @@ export class PmsOkRuModule extends PmsModule {
 
     init() {
         this.url = Url.parse(this.request.url, true);
+        console.log(this.request.url)
 
         // @ts-ignore
         delete this.url.search;
@@ -39,6 +42,12 @@ export class PmsOkRuModule extends PmsModule {
                 })
 
             return;
+        }
+
+        // load segment & cached
+        const cached = PmsOkRuModule.cachedManager.getCached(this.request);
+        if (cached) {
+            cached.waitBuffer({ start: this.startSegment, end: this.endSegment });
         }
 
         // split segment
@@ -64,7 +73,7 @@ export class PmsOkRuModule extends PmsModule {
         let t = new Date().getTime();
         const request = requestLib(url, option, (err, response) => {
             t = new Date().getTime() - t;
-            console.log('Ok.ru:', this.request.id, start, '-->', end, t, 'ms');
+            // console.log('Ok.ru:', this.request.id, start, '-->', end, t, 'ms');
             if (response?.body) {
                 PmsOkRuModule.smartSpeed.add(response.body.length, t);
             }
@@ -136,7 +145,7 @@ export class PmsOkRuModule extends PmsModule {
         // @ts-ignore
         const buffers = result.map(r => r.response.body);
         const buffer = Buffer.concat(buffers);
-        console.log('Oke buffer length', buffer.length/1024 + 'kb', '->', new Date().getTime() - time, 'ms')
+        // console.log('Oke buffer length', buffer.length/1024 + 'kb', '->', new Date().getTime() - time, 'ms')
         console.log((buffer.length/1024/1024)/((new Date().getTime() - time)/1000), 'Mb/S')
 
         const headers = result[0].response.headers;
@@ -153,6 +162,5 @@ export class PmsOkRuModule extends PmsModule {
             headers
         })
     }
-
 
 }

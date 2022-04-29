@@ -3,6 +3,9 @@ import path from 'path';
 import {PmsModule} from "@cores/module";
 import {PmsOkRuModule} from "@modules/ok-ru";
 
+// google-chrome --proxy-server=localhost:$PORT --ignore-certificate-errors-spki-list=$CERT_FINGERPRINT --user-data-dir=$ANY_PATH
+// const caFingerprint = mockttp.generateSPKIFingerprint(https.cert)
+
 (async () => {
     // Create a proxy server with a self-signed HTTPS CA certificate:
     const server = mockttp.getLocal({
