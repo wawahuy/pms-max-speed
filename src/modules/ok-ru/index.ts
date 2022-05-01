@@ -40,15 +40,17 @@ export class PmsOkRuModule extends PmsModule {
                         headers: response.headers
                     })
                 })
-
             return;
         }
 
         // load segment & cached
-        const cached = PmsOkRuModule.cachedManager.getCached(this.request);
-        if (cached) {
-            cached.waitBuffer({ start: this.startSegment, end: this.endSegment });
-        }
+        // const cached = PmsOkRuModule.cachedManager.getCached(this.request);
+        // if (cached) {
+        //     cached.waitBuffer({ start: this.startSegment, end: this.endSegment })
+        //         .setCallback((buffer) => {
+        //
+        //         });
+        // }
 
         // split segment
         this.splitSegment().then(() => {});

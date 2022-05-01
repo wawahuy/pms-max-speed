@@ -12,14 +12,19 @@ export class PmsOkRuCachedManager extends PmsCachedManager<PmsOkRuCached> {
 
     protected makeQueryKey(request: CompletedRequest, url: Url.UrlWithParsedQuery): KeyPair<string> {
         const id = url.query['id'];
+        const sig = url.query['sig'];
+        const type = url.query['type'];
         return {
-            id: String(id)
+            id: String(id),
+            sig: String(sig),
+            type: String(type)
         };
     }
 
     protected isRenewCached(cached: PmsOkRuCached, request: CompletedRequest, url: Url.UrlWithParsedQuery): boolean {
-        const queryCached = cached.getUrl().query;
-        const queryUrl = url.query;
-        return queryCached['sig'] != queryUrl['sig'] || queryCached['type'] != queryUrl['type'];
+        // const queryCached = cached.getUrl().query;
+        // const queryUrl = url.query;
+        // return queryCached['sig'] != queryUrl['sig'] || queryCached['type'] != queryUrl['type'];
+        return false;
     }
 }

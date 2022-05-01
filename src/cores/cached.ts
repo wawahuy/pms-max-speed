@@ -1,31 +1,27 @@
-import * as Buffer from "buffer";
 import {CompletedRequest} from "mockttp";
 import Url from "url";
-
-export type CallbackWaitBuffer = (error: any, buffer: Buffer) => void;
-
-export interface BufferRange {
-    start: number;
-    end: number
-}
-
-export class PmsWaitBuffer {
-
-    constructor(
-        range: BufferRange
-    ) {
-    }
-}
+import requestLib from "request";
+import {PmsBufferCallback, PmsBufferRange, PmsResponse, PmsWaiterResponse} from "@cores/types";
+import {PmsBufferTree} from "@cores/buffer-tree";
 
 export abstract class PmsCached {
     protected request: CompletedRequest;
     protected url: Url.UrlWithParsedQuery;
+    protected bufferTree: PmsBufferTree;
 
+    protected constructor() {
+        this.bufferTree = new PmsBufferTree();
+    }
+
+    abstract loadSegment(range: PmsBufferRange): void;
     abstract release(): void;
 
-    waitBuffer(range: BufferRange): PmsWaitBuffer {
-        const wait = new PmsWaitBuffer(range);
-        return wait;
+    getBuffer(range: PmsBufferRange, callback: PmsBufferCallback) {
+        return this.bufferTree.get(range, callback);
+    }
+
+    searchRangeForDownload() {
+
     }
 
     setRequest(request: CompletedRequest) {
@@ -36,4 +32,21 @@ export abstract class PmsCached {
     getUrl() {
         return this.url;
     }
+
+    network: (url: string, option: requestLib.CoreOptions) => PmsWaiterResponse = PmsCached.network;
+
+    static network(url: string, option: requestLib.CoreOptions): PmsWaiterResponse {
+        let resolve: (value: PmsResponse) => void;
+        let waiter = new Promise<PmsResponse>(res => resolve = res);
+
+        const request = requestLib(url, option, (err, response) => {
+            resolve({ response, err })
+        })
+
+        return {
+            waiter,
+            request
+        }
+    }
+
 }
