@@ -21,7 +21,7 @@ import {PmsOkRuModule} from "@modules/ok-ru";
 
 
     await Promise.all(modules.map(moduleClazz => {
-        return server.forGet(moduleClazz.matcher()).thenCallback(PmsModule.create(moduleClazz));
+        return server.forGet(moduleClazz.matcher()).withSomeQuery({ bytes: /.*/g }).thenCallback(PmsModule.create(moduleClazz));
     }))
 
     await server.forUnmatchedRequest().thenPassThrough();
