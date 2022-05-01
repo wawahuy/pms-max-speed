@@ -146,22 +146,3 @@ export class PmsBufferTree {
         return necessaryNodes;
     }
 }
-
-// test
-(async () => {
-    const tree = new PmsBufferTree();
-    tree.get({ start: 0, end: 9 }, (buffer) => {
-        console.log('get success 0 - 9', buffer);
-    })
-    const r1 = tree.insert({ start: 0, end: 9 }, Buffer.of(0, 1,2,3,4,5,6,7,8,9));
-    if (r1) {
-        console.log('insert success r1');
-    }
-    tree.get({ start: 10, end: 20 }, (buffer) => {
-        console.log('get success 10 - 20', buffer);
-    })
-    tree.get({ start: 7, end: 15 }, buffer => {
-        console.log('get success 7 - 15', buffer);
-    })
-    const r2 = tree.insert({ start: 10, end: 20 }, Buffer.of(0,1,2,3,4,5,6,7,8,9,0));
-})()
