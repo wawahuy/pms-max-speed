@@ -2,7 +2,7 @@ import Url from 'url';
 import requestLib from 'request';
 import {SmartSpeed} from "@cores/smart-speed";
 import {PmsModule} from "@cores/module";
-import {PmsResponse, PmsWaiterResponse} from "@cores/types";
+import {PmsBufferRange, PmsResponse, PmsWaiterResponse} from "@cores/types";
 import {PmsOkRuCachedManager} from "@modules/ok-ru/cached-manager";
 
 export class PmsOkRuModule extends PmsModule {
@@ -44,13 +44,12 @@ export class PmsOkRuModule extends PmsModule {
         }
 
         // load segment & cached
-        // const cached = PmsOkRuModule.cachedManager.getCached(this.request);
-        // if (cached) {
-        //     cached.waitBuffer({ start: this.startSegment, end: this.endSegment })
-        //         .setCallback((buffer) => {
-        //
-        //         });
-        // }
+        const cached = PmsOkRuModule.cachedManager.getCached(this.request);
+        if (cached) {
+            const range: PmsBufferRange = { start: this.startSegment, end: this.endSegment };
+            cached.getBuffer(range, buffer => {
+            })
+        }
 
         // split segment
         this.splitSegment().then(() => {});

@@ -4,6 +4,13 @@ describe('Buffer Tree Tests', () => {
     const bufferTree = new PmsBufferTree();
     const buffer = Buffer.of(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
 
+    test('Get no data ranges 0 -> 10', () => {
+        const range = { start: 0, end: 10 };
+        expect(bufferTree.getNoDataRanges(range)).toEqual([
+            { start: 0, end: 10 }
+        ])
+    })
+
     test('Insert offset: 2 -> 4', () => {
         const range = { start: 2, end: 4 };
         const data = buffer.slice(2, 5);
@@ -15,6 +22,21 @@ describe('Buffer Tree Tests', () => {
         bufferTree.get(range, (...args) => {
             expect(args).toEqual([buffer.slice(2, 5), range]);
         })
+    })
+
+    test('Get no data ranges 0 -> 3', () => {
+        const range = { start: 0, end: 3 };
+        expect(bufferTree.getNoDataRanges(range)).toEqual([
+            { start: 0, end: 1 }
+        ])
+    })
+
+    test('Get no data ranges 0 -> 10, has 2 -> 4', () => {
+        const range = { start: 0, end: 10 };
+        expect(bufferTree.getNoDataRanges(range)).toEqual([
+            { start: 0, end: 1 },
+            { start: 5, end: 10 }
+        ])
     })
 
     test('Get offsets: 6 -> 7 with insert outside', async () => {
@@ -31,7 +53,7 @@ describe('Buffer Tree Tests', () => {
         const data = buffer.slice(5, 10);
         expect(bufferTree.insert(rangeInsert, data)).toBe(true)
 
-        // waiting
+        // wait callback
         await expect(promise).resolves.toEqual([buffer.slice(rangeGet.start, rangeGet.end + 1), rangeGet]);
     })
 

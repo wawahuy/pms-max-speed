@@ -40,13 +40,54 @@ export class PmsBufferTree {
         this.avlGetCallback.add(key, callback);
     }
 
+    getNoDataRanges(range: PmsBufferRange) {
+        const ranges: PmsBufferRange[] = [];
+        const nodes = this.nodeInRange(range);
+        let offsetCurrent: number = range.start;
+        let iNode = 0;
+        while (iNode < nodes.length) {
+            const node = nodes[iNode++];
+            if (!node.data) {
+                continue;
+            }
+
+            // if offset is between node
+            const { start, end } = node.data
+            if (offsetCurrent >= start && offsetCurrent <= end) {
+                continue;
+            }
+
+            // if node is common buffer - two node nested point to buffer
+            if (end === offsetCurrent - 1) {
+                continue;
+            }
+
+            // pass all test
+            ranges.push({
+                start: offsetCurrent,
+                end: start - 1
+            })
+
+            offsetCurrent = end + 1;
+        }
+
+        if (offsetCurrent < range.end) {
+            ranges.push({
+                start: offsetCurrent,
+                end: range.end
+            })
+        }
+
+        return ranges;
+    }
+
     private getBufferCurrent(range: PmsBufferRange): Buffer | null {
         const nodes = this.getNodeNecessary(range);
         if (
             !nodes.length ||
             nodes[0].start > range.start ||
             nodes[nodes.length -1].end < range.end ||
-            this.isDataNotBroken(nodes)
+            this.isDataBroken(nodes)
         ) {
             return null;
         }
@@ -56,7 +97,7 @@ export class PmsBufferTree {
         return buffer.slice(start, end);
     }
 
-    private isDataNotBroken(bufferNodes: PmsBufferNode[]) {
+    private isDataBroken(bufferNodes: PmsBufferNode[]) {
         let nodePrev: PmsBufferNode;
         return !bufferNodes.some(item => {
             const status = !nodePrev || (item.start === nodePrev.end + 1);
