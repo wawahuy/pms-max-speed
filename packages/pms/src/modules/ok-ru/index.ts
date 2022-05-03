@@ -1,10 +1,7 @@
 import Url from 'url';
-import requestLib from 'request';
-import {SmartSpeed} from "@cores/smart-speed";
 import {PmsModule} from "@cores/module";
 import {PmsBufferRange, PmsResponse, PmsWaiterResponse} from "@cores/types";
 import {PmsOkRuCachedManager} from "@modules/ok-ru/cached-manager";
-import {PmsCached} from "@cores/cached";
 
 export class PmsOkRuModule extends PmsModule {
     url: Url.UrlWithParsedQuery;
