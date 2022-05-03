@@ -45,8 +45,6 @@ export abstract class PmsCached {
 
     network: (url: string, option: requestLib.CoreOptions, retry?: number) => PmsWaiterResponse = PmsCached.network;
 
-    private static networkCounter: number = 0;
-
     static network(url: string, option: requestLib.CoreOptions, retry: number = 0): PmsWaiterResponse {
         let resolve: (value: PmsResponse) => void;
         let reject: (err?: any) => void;
@@ -57,7 +55,6 @@ export abstract class PmsCached {
         const result: PmsWaiterResponse = <any>{ waiter };
 
         const retryFunc = (err: any) => {
-            console.log(url, PmsCached.networkCounter);
             if (retry--) {
                 console.log('retry');
                 return load();
@@ -67,7 +64,6 @@ export abstract class PmsCached {
         }
 
         const load = () => {
-            PmsCached.logNetworkCounter(1);
             result.request = requestLib(url, option, (err, response) => {
                 if (!!err) {
                     return retryFunc(err);
@@ -81,18 +77,12 @@ export abstract class PmsCached {
                 retryFunc(err);
             })
             result.request.on('close', () => {
-                PmsCached.logNetworkCounter(-1);
             })
         }
 
         load()
 
         return result;
-    }
-
-    static logNetworkCounter(inc: number) {
-        PmsCached.networkCounter += inc;
-        // console.log('request count:', PmsCached.networkCounter);
     }
 
 }

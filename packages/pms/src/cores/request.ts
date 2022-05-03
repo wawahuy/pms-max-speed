@@ -1,61 +1,85 @@
 import {PmsParallelMutex} from "@cores/parallel-mutex";
 import fetch, { Response, RequestInfo, RequestInit } from "node-fetch";
 import AbortControllerLib from "abort-controller";
+import {BehaviorSubject, Observable, Subject} from 'rxjs';
 
 const AbortController = globalThis.AbortController || AbortControllerLib;
 
 export type PmsRequestOption = RequestInfo;
+export type PmsRequestInit = RequestInit & {
+    retry?: number
+};
 
-export type PmsRequestInit = RequestInit;
 
 export class PmsRequest {
     private static readonly maxRequest: number = 30;
     private static mutex: PmsParallelMutex = new PmsParallelMutex(PmsRequest.maxRequest);
 
     private isCanceled: boolean = false;
-    private response: Response;
+    private retryCounter: number = 0;
     private abortController: AbortController;
-    private readonly requestInit: PmsRequestInit;
+
+    private responseSubject: BehaviorSubject<Response | null>;
+    public readonly response$: Observable<Response | null>;
 
     constructor(
         private requestInfo: PmsRequestOption,
-        requestInit?: PmsRequestInit
+        private requestInit?: PmsRequestInit
     ) {
-        this.abortController = new AbortController();
-        this.requestInit = {
-            signal: this.abortController.signal,
-            ...requestInit
-        }
+        this.responseSubject = new BehaviorSubject<Response | null>(null);
+        this.response$ = this.responseSubject.asObservable();
     }
 
     init() {
-        return new Promise<Response>(async (resolve, reject) => {
+        this.abortController = new AbortController();
+        this.requestInit = {
+            signal: this.abortController.signal,
+            ...this.requestInit
+        }
+        return new Promise<this>(async (resolve, reject) => {
             const mutex = PmsRequest.mutex;
             try {
                 await mutex.acquire();
                 if (this.isCanceled) {
-                    throw 'abort';
+                    this.isCanceled = false;
+                    throw 'AbortError';
                 }
-                this.response = await fetch(this.requestInfo, this.requestInit);
-                this.response.body.once('close', () => {
+
+                const response = await fetch(this.requestInfo, this.requestInit);
+                response.body.once('error', (err) => {
+                    mutex.release();
+                    if (err.name !== 'AbortError') {
+                        this.retry();
+                    }
+                })
+                response.body.once('close', () => {
                     mutex.release();
                 })
-                resolve(this.response);
+                this.responseSubject.next(response);
+                resolve(this);
             } catch (e) {
                 mutex.release();
+                this.retry();
                 reject(e);
             }
         })
     }
 
-    abort() {
-        this.isCanceled = true;
-        if (this.response) {
-            this.abortController.abort();
+    private retry() {
+        const r = this.requestInit?.retry || 0;
+        if (this.retryCounter++ < r) {
+            setTimeout(() => {
+                this.init().catch(e => console.log(e));
+            })
         }
     }
 
+    abort() {
+        this.isCanceled = true;
+        this.abortController.abort();
+    }
+
     getResponse() {
-        return this.response;
+        return this.responseSubject.value;
     }
 }
