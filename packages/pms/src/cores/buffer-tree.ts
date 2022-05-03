@@ -4,7 +4,7 @@ import {PmsBufferCallback, PmsBufferNode, PmsBufferRange, PmsWaiterResponse} fro
 
 export class PmsBufferTree {
     private avlGetCallback: AvlKeyDuplicate<string, PmsBufferCallback>;
-     avlOffsetBuffer: AVLTree<number, PmsBufferNode>
+    private avlOffsetBuffer: AVLTree<number, PmsBufferNode>
 
     constructor() {
         this.avlGetCallback = new AvlKeyDuplicate<string, PmsBufferCallback>()
@@ -15,7 +15,6 @@ export class PmsBufferTree {
         const node: PmsBufferNode = { ...range, waiter };
         waiter.waiter
             .then(res => {
-                console.log(range, res.response.body.length)
                 this.insertBuffer(range, res.response.body);
             })
             .catch(err => {
@@ -60,6 +59,10 @@ export class PmsBufferTree {
     }
 
     private insertOrReplaceNode(node: PmsBufferNode) {
+        if (node.start >= node.end) {
+            throw "hmm... " + node.start + ' -> ' + node.end;
+        }
+
         const nodesExists = this.nodeInRange(node as PmsBufferRange);
         if (nodesExists?.length) {
             this.removeBuffer({ start: node.start, end: node.end });
@@ -83,10 +86,10 @@ export class PmsBufferTree {
         this.avlGetCallback.add(key, callback);
     }
 
-    getNoDataRanges(range: PmsBufferRange, includeWaiter?: boolean) {
+    getNoDataRanges(range: PmsBufferRange, isWaiterNotData?: boolean) {
         const ranges: PmsBufferRange[] = [];
         let nodes = this.nodeInRange(range);
-        if (!includeWaiter) {
+        if (isWaiterNotData) {
             nodes = nodes.filter(node => !node.data?.waiter);
         }
 
@@ -101,6 +104,7 @@ export class PmsBufferTree {
             // if offset is between node
             const { start, end } = node.data
             if (offsetCurrent >= start && offsetCurrent <= end) {
+                offsetCurrent = end + 1;
                 continue;
             }
 
@@ -190,6 +194,12 @@ export class PmsBufferTree {
                 node.data?.forEach(callback => {
                     callback(buffer, { start, end });
                 })
+
+                /**
+                 * need add ttl or maxSizeBuffer
+                 * tmp delete buffer
+                 */
+                this.removeBuffer({start, end})
             }
         })
 

@@ -14,10 +14,16 @@ export class PmsOkRuCachedManager extends PmsCachedManager<PmsOkRuCached> {
         const id = url.query['id'];
         const sig = url.query['sig'];
         const type = url.query['type'];
+        const pr = url.query['pr'];
+        const ct = url.query['ct'];
+        const clientType = url.query['clientType'];
         return {
             id: String(id),
             sig: String(sig),
-            type: String(type)
+            type: String(type),
+            ct: String(ct),
+            pr: String(pr),
+            clientType: String(clientType),
         };
     }
 

@@ -19,14 +19,13 @@ export abstract class PmsCached {
     abstract release(): void;
 
     getBuffer(range: PmsBufferRange, callback: PmsBufferCallback) {
+        console.log('----------------')
+        console.log(this.request.url);
+        console.log('load', this.id);
+
         if (!this.bufferTree.has(range, true)) {
             const { start, end } = range;
-            console.log('load', this.id);
-            let e = end;
-            const size = end - start;
-            if (size > 0.5 * 1024 * 1024) {
-                e = start + 5 * 1024 * 1024
-            }
+            const e = Math.max(start + 10 * 1024 * 1024, end);
             this.loadRanges(this.bufferTree.getNoDataRanges({ start, end: e }, false));
             console.log('add waiter');
         } else {
@@ -58,7 +57,9 @@ export abstract class PmsCached {
         const result: PmsWaiterResponse = <any>{ waiter };
 
         const retryFunc = (err: any) => {
+            console.log(url, PmsCached.networkCounter);
             if (retry--) {
+                console.log('retry');
                 return load();
             } else {
                 return reject(err);
@@ -91,7 +92,7 @@ export abstract class PmsCached {
 
     static logNetworkCounter(inc: number) {
         PmsCached.networkCounter += inc;
-        console.log('request count:', PmsCached.networkCounter);
+        // console.log('request count:', PmsCached.networkCounter);
     }
 
 }

@@ -66,7 +66,18 @@ describe('Buffer Tree Tests', () => {
         })
     })
 
-    // test('test insert waiter 3 -> 7', async () => {
+    test('test insert waiter 3 -> 7', async () => {
+        const rangeGet = {start: 3, end: 7};
+        bufferTree.removeBuffer(rangeGet);
+        expect(bufferTree.has(rangeGet)).toBe(false);
+        expect(bufferTree.getNoDataRanges({ start: 0, end: 9 })).toEqual([
+            { start: 0, end: 1},
+            { start: 3, end: 7}
+        ])
+    })
+
+
+        // test('test insert waiter 3 -> 7', async () => {
     //     const rangeGet = { start: 3, end: 7 };
     //     bufferTree.removeBuffer(rangeGet);
     //     expect(bufferTree.has(rangeGet)).toBe(false);

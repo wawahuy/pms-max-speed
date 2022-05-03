@@ -4,6 +4,7 @@ import {SmartSpeed} from "@cores/smart-speed";
 import {PmsModule} from "@cores/module";
 import {PmsBufferRange, PmsResponse, PmsWaiterResponse} from "@cores/types";
 import {PmsOkRuCachedManager} from "@modules/ok-ru/cached-manager";
+import {PmsCached} from "@cores/cached";
 
 export class PmsOkRuModule extends PmsModule {
     url: Url.UrlWithParsedQuery;
@@ -18,7 +19,6 @@ export class PmsOkRuModule extends PmsModule {
 
     init() {
         this.url = Url.parse(this.request.url, true);
-        console.log(this.request.url)
 
         // @ts-ignore
         delete this.url.search;
@@ -34,6 +34,7 @@ export class PmsOkRuModule extends PmsModule {
             const range: PmsBufferRange = { start: this.startSegment, end: this.endSegment };
             const time = new Date().getTime();
             cached.getBuffer(range, buffer => {
+                console.log('---------res-----------')
                 console.log(this.request.url);
                 console.log(buffer.length/1024/1024, 'Mb -',((buffer.length/1024/1024)/((new Date().getTime() - time)/1000)).toFixed(2), 'Mb/S')
                 const headers = cached.getHeaderLasted();
