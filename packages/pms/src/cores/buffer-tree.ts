@@ -1,6 +1,7 @@
 import {AvlKeyDuplicate} from "@cores/avl-key-duplicate";
 import AVLTree, {Node} from "avl";
-import {PmsBufferCallback, PmsBufferNode, PmsBufferRange, PmsWaiterResponse} from "@cores/types";
+import {PmsBufferCallback, PmsBufferNode, PmsBufferRange} from "@cores/types";
+import {PmsRequest} from "@cores/request";
 
 export class PmsBufferTree {
     private avlGetCallback: AvlKeyDuplicate<string, PmsBufferCallback>;
@@ -11,16 +12,18 @@ export class PmsBufferTree {
         this.avlOffsetBuffer = new AVLTree<number, PmsBufferNode>()
     }
 
-    insertWaiter(range: PmsBufferRange, waiter: PmsWaiterResponse) {
+    insertWaiter(range: PmsBufferRange, waiter: PmsRequest) {
         const node: PmsBufferNode = { ...range, waiter };
-        waiter.waiter
-            .then(res => {
-                this.insertBuffer(range, res.response.body);
-            })
-            .catch(err => {
-                this.removeBuffer(range);
-                // need call callback null buffer
-            })
+        waiter.response$.subscribe(response => {
+            if (!response) return;
+            response.buffer()
+                .then(buffer => {
+                    this.insertBuffer(range, buffer);
+                })
+                .catch(() => {
+                    this.removeBuffer(range);
+                })
+        })
         return this.insertOrReplaceNode(node);
     }
 

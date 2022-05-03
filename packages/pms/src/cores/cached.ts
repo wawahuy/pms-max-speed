@@ -1,6 +1,6 @@
 import {CompletedRequest} from "mockttp";
 import Url from "url";
-import {PmsBufferCallback, PmsBufferRange, PmsResponse, PmsWaiterResponse} from "@cores/types";
+import {PmsBufferCallback, PmsBufferRange} from "@cores/types";
 import {PmsBufferTree} from "@cores/buffer-tree";
 import requestLib from "request";
 
@@ -42,47 +42,4 @@ export abstract class PmsCached {
     getUrl() {
         return this.url;
     }
-
-    network: (url: string, option: requestLib.CoreOptions, retry?: number) => PmsWaiterResponse = PmsCached.network;
-
-    static network(url: string, option: requestLib.CoreOptions, retry: number = 0): PmsWaiterResponse {
-        let resolve: (value: PmsResponse) => void;
-        let reject: (err?: any) => void;
-        const waiter = new Promise<PmsResponse>((res, rej) => {
-            resolve = res;
-            reject = rej;
-        });
-        const result: PmsWaiterResponse = <any>{ waiter };
-
-        const retryFunc = (err: any) => {
-            if (retry--) {
-                console.log('retry');
-                return load();
-            } else {
-                return reject(err);
-            }
-        }
-
-        const load = () => {
-            result.request = requestLib(url, option, (err, response) => {
-                if (!!err) {
-                    return retryFunc(err);
-                }
-                resolve({ response })
-            })
-            result.request.on('abort', () => {
-                reject()
-            })
-            result.request.on('error', (err) => {
-                retryFunc(err);
-            })
-            result.request.on('close', () => {
-            })
-        }
-
-        load()
-
-        return result;
-    }
-
 }

@@ -41,7 +41,6 @@
     "mockttp": "file:../mockttp",
     "node-fetch": "^2.6.7",
     "query-string": "^7.1.1",
-    "request": "^2.88.2",
     "rxjs": "^7.5.5",
     "winston": "^3.7.2"
   }

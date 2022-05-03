@@ -1,7 +1,7 @@
 import {PmsCached} from "@cores/cached";
-import {PmsBufferRange, PmsResponse, PmsWaiterResponse} from "@cores/types";
-import requestLib from "request";
+import {PmsBufferRange} from "@cores/types";
 import * as http from "http";
+import {PmsRequest, PmsRequestInit} from "@cores/request";
 
 export class PmsOkRuCached extends PmsCached  {
     private headerLasted: http.IncomingHttpHeaders;
@@ -24,12 +24,18 @@ export class PmsOkRuCached extends PmsCached  {
 
     requestRange(range: PmsBufferRange) {
         const url = this.getUrlByRange(range);
-        const option: requestLib.CoreOptions = {
-            headers: this.request.headers,
-            encoding: null,
+        const option: PmsRequestInit = {
+            headers: <any>this.request.headers,
             timeout: 5000
         }
-        return this.network(url, option, 3);
+        const request = new PmsRequest(url, option);
+        request.init().then(r => {
+            const header = request.getHeaders();
+            if (header) {
+                this.headerLasted = header;
+            }
+        });
+        return request;
     }
 
     loadRanges(ranges: PmsBufferRange[]): void {
@@ -53,10 +59,6 @@ export class PmsOkRuCached extends PmsCached  {
 
             const r = { start: s, end: e };
             const p = this.requestRange(r);
-            p.waiter.then(res => {
-                this.headerLasted = res.response.headers;
-                return Promise.resolve(res);
-            })
             this.bufferTree.insertWaiter(r, p);
             currentSegment = e;
         } while (currentSegment < end);

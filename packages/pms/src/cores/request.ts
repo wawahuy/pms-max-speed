@@ -2,6 +2,7 @@ import {PmsParallelMutex} from "@cores/parallel-mutex";
 import fetch, { Response, RequestInfo, RequestInit } from "node-fetch";
 import AbortControllerLib from "abort-controller";
 import {BehaviorSubject, Observable, Subject} from 'rxjs';
+import {IncomingHttpHeaders} from "http";
 
 const AbortController = globalThis.AbortController || AbortControllerLib;
 
@@ -47,6 +48,7 @@ export class PmsRequest {
 
                 const response = await fetch(this.requestInfo, this.requestInit);
                 response.body.once('error', (err) => {
+                    console.log(err);
                     mutex.release();
                     if (err.name !== 'AbortError') {
                         this.retry();
@@ -77,6 +79,26 @@ export class PmsRequest {
     abort() {
         this.isCanceled = true;
         this.abortController.abort();
+    }
+
+    getHeaders() {
+        const response = this.responseSubject.value;
+        if (!response) {
+            return null;
+        }
+
+        const headers: IncomingHttpHeaders = {};
+
+        const h = response.headers.raw();
+        Object.keys(h).forEach(key => {
+            if (h[key]?.length > 1) {
+                console.log('check re!')
+                process.exit(-1);
+            }
+            headers[key] = h[key]?.[0];
+        })
+
+        return headers;
     }
 
     getResponse() {
