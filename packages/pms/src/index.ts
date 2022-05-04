@@ -3,6 +3,8 @@ import path from 'path';
 import {PmsModule} from "@cores/module";
 import {PmsOkRuModule} from "@modules/ok-ru";
 
+process.env.rootAppDir = __dirname;
+
 // google-chrome --proxy-server=localhost:$PORT --ignore-certificate-errors-spki-list=$CERT_FINGERPRINT --user-data-dir=$ANY_PATH
 // const caFingerprint = mockttp.generateSPKIFingerprint(https.cert)
 

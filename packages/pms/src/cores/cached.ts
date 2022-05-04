@@ -24,7 +24,7 @@ export abstract class PmsCached {
 
         if (!this.bufferTree.has(range, true)) {
             const { start, end } = range;
-            const e = Math.max(start + 10 * 1024 * 1024, end);
+            const e = end || Math.max(start + 10 * 1024 * 1024, end);
             this.loadRanges(this.bufferTree.getNoDataRanges({ start, end: e }, false));
             console.log('add waiter');
         } else {

@@ -6,4 +6,9 @@ export const configs = {
     cacheMaxSize: 1024 * 1024 * 1024,
 
 
+    /**
+     * Root App Directory
+     *
+     */
+    rootAppDir: process.env.rootAppDir || ""
 }

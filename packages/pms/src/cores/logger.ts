@@ -1,5 +1,6 @@
 import winston from "winston";
 import path from "path";
+import {configs} from "@cores/config";
 
 
 export const log = winston.createLogger({
@@ -20,7 +21,7 @@ export const log = winston.createLogger({
         new winston.transports.Console(),
         new winston.transports.File({
             level: 'error',
-            filename: path.join(__dirname, '../../data/errors.log')
+            filename: path.join(configs.rootAppDir, 'data/errors.log')
         })
     ],
 })
