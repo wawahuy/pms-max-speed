@@ -33,8 +33,7 @@ export class PmsBufferTree {
     }
 
     removeBuffer(range: PmsBufferRange) {
-        const prevList = this.nodeInRange({ start: this.avlOffsetBuffer.min() || 0, end: range.start - 1 });
-        const prev = prevList?.[prevList?.length - 1];
+        const prev = this.avlOffsetBuffer.nodeBeforeKey(range.start);
         if (prev?.data) {
             const dataPrev = prev.data;
             if (dataPrev.end >= range.start) {
@@ -44,8 +43,7 @@ export class PmsBufferTree {
             }
         }
 
-        const nextList = this.nodeInRange({ end: this.avlOffsetBuffer.max() || 0, start: range.end + 1 });
-        const next = nextList?.[0];
+        const next = this.avlOffsetBuffer.nodeBeforeKey(range.end);
         if (next?.data) {
             const dataNext = next.data;
             if (dataNext.start <= range.end) {
@@ -228,14 +226,12 @@ export class PmsBufferTree {
     protected getNodeNecessary(range: PmsBufferRange) {
         let centerNodes = this.nodeInRange(range);
         if (!centerNodes.length) {
-            const prevList = this.nodeInRange({ start: this.avlOffsetBuffer.min() || 0, end: range.start - 1 });
-            const prev = prevList?.[prevList?.length - 1];
+            const prev = this.avlOffsetBuffer.nodeBeforeKey(range.start);
             if (!prev) {
                 return []
             }
 
-            const nextList = this.nodeInRange({ end: this.avlOffsetBuffer.max() || 0, start: range.end + 1 });
-            const next = nextList?.[0];
+            const next = this.avlOffsetBuffer.nodeAfterKey(range.end);
             if (!next) {
                 return []
             }

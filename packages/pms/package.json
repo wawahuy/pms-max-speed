@@ -38,10 +38,10 @@
   },
   "dependencies": {
     "abort-controller": "^3.0.0",
-    "avl": "^1.5.3",
     "chrome-paths": "^1.0.1",
     "jest": "^27.5.1",
     "mockttp": "file:../mockttp",
+    "avl": "file:../avl",
     "node-fetch": "^2.6.7",
     "query-string": "^7.1.1",
     "rxjs": "^7.5.5",
