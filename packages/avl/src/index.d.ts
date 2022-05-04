@@ -16,6 +16,8 @@ export default class AVLTree<Key extends any, Value extends any> {
   insert(key: Key, data?: Value): Node<Key, Value>;
   remove(key: Key): Node<Key, Value>;
   find(key: Key): Node<Key, Value> | null;
+  nodeBeforeKey(key: Key): Node<Key, Value> | null;
+  nodeAfterKey(key: Key): Node<Key, Value> | null;
   at(index: number): Node<Key, Value> | null;
   contains(key: Key): boolean;
   isEmpty(): boolean;

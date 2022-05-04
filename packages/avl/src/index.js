@@ -465,6 +465,74 @@ export default class AVLTree {
     return null;
   }
 
+  nodeBeforeKey (key) {
+    let current = this._root;
+    let s = [], done = false, i = 0, prev = null;
+
+    while (!done) {
+      // Reach the left most Node of the current Node
+      if (current) {
+        // Place pointer to a tree node on the stack
+        // before traversing the node's left subtree
+        s.push(current);
+        current = current.left;
+      } else {
+        // BackTrack from the empty subtree and visit the Node
+        // at the top of the stack; however, if the stack is
+        // empty you are done
+        if (s.length > 0) {
+          current = s.pop();
+          if (current.key >= key) {
+            return prev;
+          }
+          prev = current;
+          i++;
+
+          // We have visited the node and its left
+          // subtree. Now, it's right subtree's turn
+          current = current.right;
+        } else done = true;
+      }
+    }
+
+    return prev;
+  }
+
+
+  nodeAfterKey (key) {
+    let current = this._root;
+    let s = [], done = false, i = 0;
+
+    while (!done) {
+      // Reach the left most Node of the current Node
+      if (current) {
+        // Place pointer to a tree node on the stack
+        // before traversing the node's left subtree
+        s.push(current);
+        current = current.left;
+      } else {
+        // BackTrack from the empty subtree and visit the Node
+        // at the top of the stack; however, if the stack is
+        // empty you are done
+        if (s.length > 0) {
+          current = s.pop();
+          if (current.key > key) {
+            return current;
+          }
+          i++;
+
+          // We have visited the node and its left
+          // subtree. Now, it's right subtree's turn
+          current = current.right;
+        } else done = true;
+      }
+    }
+
+    return null;
+  }
+
+
+
   /**
    * Insert a node into the tree
    * @param  {Key} key
