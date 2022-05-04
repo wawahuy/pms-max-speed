@@ -19,7 +19,7 @@
   "scripts": {
     "prebuild": "npm run lint",
     "lint": "eslint src",
-    "lint-fix": "eslint src",
+    "lint-fix": "eslint src --fix",
     "build": "rollup -c && npm run types",
     "types": "tsc --strict src/index.d.ts",
     "prebenchmark": "npm run build",

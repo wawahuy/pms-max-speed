@@ -498,7 +498,6 @@ export default class AVLTree {
     return prev;
   }
 
-
   nodeAfterKey (key) {
     let current = this._root;
     let s = [], done = false, i = 0;
@@ -530,8 +529,6 @@ export default class AVLTree {
 
     return null;
   }
-
-
 
   /**
    * Insert a node into the tree
