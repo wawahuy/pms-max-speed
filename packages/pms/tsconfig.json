@@ -32,10 +32,8 @@
     "transpileOnly": true
   },
   "include": [
-      "src/**/*"
-  ],
-  "exclude": [
-      "node_modules"
+    "src/**/*",
+    "node_modules/mockttp/custom-typings/*.d.ts"
   ],
   "arrow-parens": [
       true,

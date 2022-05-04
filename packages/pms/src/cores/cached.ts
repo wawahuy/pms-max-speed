@@ -2,7 +2,6 @@ import {CompletedRequest} from "mockttp";
 import Url from "url";
 import {PmsBufferCallback, PmsBufferRange} from "@cores/types";
 import {PmsBufferTree} from "@cores/buffer-tree";
-import requestLib from "request";
 
 export abstract class PmsCached {
     protected request: CompletedRequest;

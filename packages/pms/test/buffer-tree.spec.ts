@@ -1,6 +1,4 @@
 import {PmsBufferTree} from "../src/cores/buffer-tree";
-import {PmsResponse} from "../src/cores/types";
-import {PmsCached} from "../src/cores/cached";
 
 describe('Buffer Tree Tests', () => {
     const bufferTree = new PmsBufferTree();

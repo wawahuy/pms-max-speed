@@ -62,7 +62,7 @@
   "scripts": {
     "prebuild": "rimraf dist/*",
     "build": "npm run build:src && npm run build:doc",
-    "build:src": "tsc",
+    "build:src": "tsc && chmod +x ./dist/admin/admin-bin.js",
     "build:doc": "typedoc src/main.ts",
     "postbuild:doc": "touch ./typedoc/.nojekyll",
     "test": "npm run build && npm run test:node && npm run test:browser",
@@ -173,7 +173,7 @@
     "graphql-tag": "^2.12.6",
     "http-encoding": "^1.5.0",
     "http2-wrapper": "2.0.5",
-    "lodash": "^4.16.4",
+    "lodash": "^4.17.21",
     "native-duplexpair": "^1.0.0",
     "node-forge": "^1.2.1",
     "performance-now": "^2.1.0",

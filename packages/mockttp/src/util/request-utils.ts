@@ -9,6 +9,8 @@ import now = require("performance-now");
 import * as url from 'url';
 import { decodeBuffer } from 'http-encoding';
 
+
+
 import {
     Headers,
     OngoingRequest,
@@ -423,7 +425,7 @@ export async function waitForCompletedResponse(response: OngoingResponse): Promi
     const body = await waitForBody(response.body, response.getHeaders());
     response.timingEvents.responseSentTimestamp = response.timingEvents.responseSentTimestamp || now();
 
-    const completedResponse: CompletedResponse = _(response).pick([
+    const completedResponse: CompletedResponse = (<any>_)(response).pick([
         'id',
         'statusCode',
         'timingEvents',
