@@ -2,6 +2,7 @@
 
 const path = require('path');
 const nodeExternals = require('webpack-node-externals');
+const NodemonPlugin = require('nodemon-webpack-plugin');
 const resolveTsconfigPathsToAlias = require("./webpack/resolve-tsconfig-path-to-webpack-alias");
 
 const isProduction = process.env.NODE_ENV == 'production';
@@ -19,6 +20,7 @@ const config = {
         filename: '[name].js'
     },
     plugins: [
+        new NodemonPlugin()
     ],
     module: {
         rules: [
