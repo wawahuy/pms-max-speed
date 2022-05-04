@@ -1,6 +1,6 @@
 import winston from "winston";
 import path from "path";
-import {configs} from "@cores/config";
+import {configs} from "../config";
 
 
 export const log = winston.createLogger({

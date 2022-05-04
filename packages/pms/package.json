@@ -21,16 +21,20 @@
   },
   "homepage": "https://github.com/wawahuy/pirated-max-speed#readme",
   "devDependencies": {
+    "@types/express": "^4.17.13",
     "@types/jest": "^27.4.1",
     "@types/node": "^17.0.29",
     "@types/node-fetch": "^2.6.1",
     "@webpack-cli/generators": "^2.4.2",
+    "express": "^4.18.1",
+    "nodemon-webpack-plugin": "^4.7.1",
     "rimraf": "^3.0.2",
     "ts-jest": "^27.1.4",
     "ts-loader": "^9.3.0",
     "typescript": "^4.6.4",
     "webpack": "^5.72.0",
-    "webpack-cli": "^4.9.2"
+    "webpack-cli": "^4.9.2",
+    "webpack-node-externals": "^3.0.0"
   },
   "dependencies": {
     "abort-controller": "^3.0.0",
@@ -39,10 +43,8 @@
     "jest": "^27.5.1",
     "mockttp": "file:../mockttp",
     "node-fetch": "^2.6.7",
-    "nodemon-webpack-plugin": "^4.7.1",
     "query-string": "^7.1.1",
     "rxjs": "^7.5.5",
-    "webpack-node-externals": "^3.0.0",
     "winston": "^3.7.2"
   }
 }

@@ -2,6 +2,8 @@ import * as mockttp from 'mockttp';
 import path from 'path';
 import {PmsModule} from "@cores/module";
 import {PmsOkRuModule} from "@modules/ok-ru";
+import {configs} from "./config";
+import {log} from "@cores/logger";
 
 process.env.rootAppDir = __dirname;
 
@@ -28,8 +30,12 @@ process.env.rootAppDir = __dirname;
 
     await server.forUnmatchedRequest().thenPassThrough();
     await server.forAnyWebSocket().thenPassThrough();
-    await server.start(1234);
+    await server.start(configs.proxyPort);
 
     // Print out the server details:
-    console.log(`Server running on port ${server.port}`);
+    log.info(`Server proxy running on port ${server.port}`);
 })();
+
+if (process.env.NODE_ENV === 'development') {
+    require('./debug')
+}

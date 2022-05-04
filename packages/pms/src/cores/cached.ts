@@ -41,4 +41,8 @@ export abstract class PmsCached {
     getUrl() {
         return this.url;
     }
+
+    debug() {
+        return this.bufferTree.debug();
+    }
 }

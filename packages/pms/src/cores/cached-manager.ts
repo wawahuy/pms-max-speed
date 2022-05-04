@@ -56,4 +56,12 @@ export abstract class PmsCachedManager<T extends PmsCached> {
             .map(key => `${key}=${query[key]}`)
             .join('&')
     }
+
+    getKeys() {
+        return this.cachedTree.keys();
+    }
+
+    getCachedByKey(key: string) {
+        return this.cachedTree.find(key)?.data;
+    }
 }

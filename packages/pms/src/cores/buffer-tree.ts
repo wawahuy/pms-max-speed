@@ -170,6 +170,10 @@ export class PmsBufferTree {
         return buffer.slice(start, end);
     }
 
+    debug() {
+        return this.avlOffsetBuffer.keys();
+    }
+
     private isDataBroken(bufferNodes: PmsBufferNode[]) {
         let nodePrev: PmsBufferNode;
         return !bufferNodes.every(item => {

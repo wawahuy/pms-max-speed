@@ -10,5 +10,9 @@ export const configs = {
      * Root App Directory
      *
      */
-    rootAppDir: process.env.rootAppDir || ""
+    rootAppDir: process.env.rootAppDir || "",
+
+
+    proxyPort: 1234,
+    debugPort: 1235
 }
