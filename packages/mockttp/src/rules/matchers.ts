@@ -296,6 +296,35 @@ export class QueryMatcher extends Serializable implements RequestMatcher {
     }
 }
 
+export class QueryRegexpMatcher extends Serializable implements RequestMatcher {
+    readonly type = 'query';
+
+    public queryObject: { [key: string]: RegExp };
+
+    constructor(
+        queryObjectInput: { [key: string]: RegExp },
+    ) {
+        super();
+        this.queryObject = queryObjectInput
+    }
+
+    matches(request: OngoingRequest) {
+        let { query } = url.parse(request.url, true);
+        return Object.keys(this.queryObject).every(key => {
+            if (query[key]) {
+                if (typeof query[key] === 'string') {
+                    return this.queryObject[key].test(query[key] as string);
+                }
+            }
+            return false;
+        });
+    }
+
+    explain() {
+        return `with a query including ....hmm :)c`;
+    }
+}
+
 export class FormDataMatcher extends Serializable implements RequestMatcher {
     readonly type = 'form-data';
 
