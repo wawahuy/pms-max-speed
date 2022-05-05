@@ -5,8 +5,6 @@ import {PmsOkRuModule} from "@modules/ok-ru";
 import {configs} from "./config";
 import {log} from "@cores/logger";
 
-process.env.rootAppDir = __dirname;
-
 // google-chrome --proxy-server=localhost:$PORT --ignore-certificate-errors-spki-list=$CERT_FINGERPRINT --user-data-dir=$ANY_PATH
 // const caFingerprint = mockttp.generateSPKIFingerprint(https.cert)
 
@@ -34,7 +32,3 @@ process.env.rootAppDir = __dirname;
     // Print out the server details:
     log.info(`Server proxy running on port ${server.port}`);
 })();
-
-if (process.env.NODE_ENV === 'development') {
-    require('./debug')
-}

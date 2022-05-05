@@ -42,6 +42,7 @@
     "jest": "^27.5.1",
     "mockttp": "file:../mockttp",
     "avl": "file:../avl",
+    "pms-ui-inject": "file:../pms-ui-inject",
     "node-fetch": "^2.6.7",
     "query-string": "^7.1.1",
     "rxjs": "^7.5.5",
