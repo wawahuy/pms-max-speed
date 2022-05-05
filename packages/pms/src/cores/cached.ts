@@ -2,11 +2,14 @@ import {CompletedRequest} from "mockttp";
 import Url from "url";
 import {PmsBufferCallback, PmsBufferRange} from "@cores/types";
 import {PmsBufferTree} from "@cores/buffer-tree";
+import {PmsRequest} from "@cores/request";
 
 export abstract class PmsCached {
     protected request: CompletedRequest;
     protected url: Url.UrlWithParsedQuery;
     protected bufferTree: PmsBufferTree;
+    protected requestFeatures: PmsRequest[];
+
     static id = 0;
     id = PmsCached.id++;
 
@@ -14,7 +17,7 @@ export abstract class PmsCached {
         this.bufferTree = new PmsBufferTree();
     }
 
-    abstract loadRanges(ranges: PmsBufferRange[]): void
+    abstract loadRanges(ranges: PmsBufferRange[]): PmsRequest[];
     abstract release(): void;
 
     getBuffer(range: PmsBufferRange, callback: PmsBufferCallback) {
@@ -44,5 +47,25 @@ export abstract class PmsCached {
 
     debug() {
         return this.bufferTree.debug();
+    }
+
+    loadFeature() {
+        // const offset = this.bufferTree.maxOffset() || 0;
+        // console.log('load feature', offset, this.id);
+        // const ranges = this.bufferTree.getNoDataRanges({
+        //     start: offset,
+        //     end: offset + 5 * 1024 * 1024
+        // }, false)
+        // this.requestFeatures = this.loadRanges(ranges);
+    }
+
+    cancelFeature() {
+        console.log('aborting...', this.id);
+        if (!this.requestFeatures?.length) {
+            return;
+        }
+        console.log('abort', this.requestFeatures.length);
+        this.requestFeatures.forEach(req => req.abort());
+        this.requestFeatures = [];
     }
 }

@@ -23,7 +23,6 @@ process.env.rootAppDir = __dirname;
         PmsOkRuModule
     ]
 
-
     await Promise.all(modules.map(moduleClazz => {
         return server.forGet(moduleClazz.matcher()).withSomeQuery({ bytes: /.+-.+/g }).thenCallback(PmsModule.create(moduleClazz));
     }))

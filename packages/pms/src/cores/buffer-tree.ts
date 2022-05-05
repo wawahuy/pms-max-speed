@@ -2,14 +2,19 @@ import {AvlKeyDuplicate} from "@cores/avl-key-duplicate";
 import AVLTree, {Node} from "avl";
 import {PmsBufferCallback, PmsBufferNode, PmsBufferRange} from "@cores/types";
 import {PmsRequest} from "@cores/request";
+import {timer} from "@cores/helpers";
 
 export class PmsBufferTree {
     private avlGetCallback: AvlKeyDuplicate<string, PmsBufferCallback>;
     private avlOffsetBuffer: AVLTree<number, PmsBufferNode>
 
     constructor() {
-        this.avlGetCallback = new AvlKeyDuplicate<string, PmsBufferCallback>()
-        this.avlOffsetBuffer = new AVLTree<number, PmsBufferNode>()
+        this.avlGetCallback = new AvlKeyDuplicate<string, PmsBufferCallback>(undefined, true);
+        this.avlOffsetBuffer = new AVLTree<number, PmsBufferNode>(undefined, true);
+    }
+
+    maxOffset() {
+        return this.avlOffsetBuffer.max();
     }
 
     insertWaiter(range: PmsBufferRange, waiter: PmsRequest) {
@@ -28,11 +33,13 @@ export class PmsBufferTree {
     }
 
     insertBuffer(range: PmsBufferRange, buffer: Buffer) {
+        // console.log('insert', range);
         const node: PmsBufferNode = { ...range, buffer };
         return this.insertOrReplaceNode(node);
     }
 
     removeBuffer(range: PmsBufferRange) {
+        // console.log('remove', range);
         const prev = this.avlOffsetBuffer.nodeBeforeKey(range.start);
         if (prev?.data) {
             const dataPrev = prev.data;
@@ -43,7 +50,7 @@ export class PmsBufferTree {
             }
         }
 
-        const next = this.avlOffsetBuffer.nodeBeforeKey(range.end);
+        const next = this.avlOffsetBuffer.nodeAfterKey(range.end);
         if (next?.data) {
             const dataNext = next.data;
             if (dataNext.start <= range.end) {
@@ -61,10 +68,12 @@ export class PmsBufferTree {
 
     private insertOrReplaceNode(node: PmsBufferNode) {
         if (node.start >= node.end) {
+            // throw  this.debug();
             throw "hmm... " + node.start + ' -> ' + node.end;
         }
 
         const nodesExists = this.nodeInRange(node as PmsBufferRange);
+        // console.log(nodesExists.map(n => [n.data?.start, n.data?.end]));
         if (nodesExists?.length) {
             this.removeBuffer({ start: node.start, end: node.end });
             this.insertOrReplaceNode(node);
@@ -161,15 +170,18 @@ export class PmsBufferTree {
                 list.push(bufferNode.buffer);
             }
             return list;
-        }, [])
+        }, []);
+        const t = timer('buffer concat');
         const buffer = Buffer.concat(buffers);
         const start = range.start - nodes[0].start;
         const end = start + (range.end - range.start) + 1;
-        return buffer.slice(start, end);
+        const result = buffer.slice(start, end);
+        t();
+        return result;
     }
 
     debug() {
-        return this.avlOffsetBuffer.keys();
+        return this.avlOffsetBuffer.toString();
     }
 
     private isDataBroken(bufferNodes: PmsBufferNode[]) {

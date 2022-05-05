@@ -4,12 +4,20 @@ import AVLTree from "avl";
 import {CompletedRequest} from "mockttp";
 import Url from "url";
 import {log} from "@cores/logger";
+import {PmsRequest} from "@cores/request";
 
 export abstract class PmsCachedManager<T extends PmsCached> {
     private cachedTree: AVLTree<string, T>;
+    private cachedLasted: PmsCached;
+    private cachedLastedTimeout: NodeJS.Timeout | null;
 
     constructor() {
         this.cachedTree = new AVLTree<string, T>();
+        PmsRequest.mutex.on('free', () => {
+            this.cachedLastedTimeout = setTimeout(() => {
+                this.cachedLasted?.loadFeature();
+            }, 500);
+        })
     }
 
     protected abstract isRenewCached(cached: T, request: CompletedRequest, url: Url.UrlWithParsedQuery): boolean;
@@ -17,6 +25,11 @@ export abstract class PmsCachedManager<T extends PmsCached> {
     protected abstract makeQueryKey(request: CompletedRequest, url: Url.UrlWithParsedQuery): KeyPair<string>;
 
     getCached(request: CompletedRequest): T | undefined {
+        if (this.cachedLastedTimeout) {
+            clearTimeout(this.cachedLastedTimeout);
+            this.cachedLastedTimeout = null;
+        }
+
         const url = Url.parse(request.url, true);
         const key = this.buildKey(this.makeQueryKey(request, url));
         if (!key){
@@ -47,6 +60,16 @@ export abstract class PmsCachedManager<T extends PmsCached> {
 
         if (node?.data) {
             node.data.setRequest(request);
+
+            /**
+             * TMP Load feature
+             *
+             */
+            if (this.cachedLasted) {
+                this.cachedLasted.cancelFeature();
+            }
+            this.cachedLasted = node.data;
+
             return node.data;
         }
     }

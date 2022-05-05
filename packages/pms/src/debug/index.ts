@@ -13,7 +13,8 @@ cacheOkRu.get('/:key', (req, res) => {
     const key = req.params.key;
     const cached = PmsOkRuModule.cachedManager.getCachedByKey(key);
     if (cached) {
-        res.json(cached.debug())
+        res.setHeader('content-type', 'text/plain');
+        res.send(cached.debug())
     } else {
         res.status(500).json({ msg: key + ' not exists' });
     }

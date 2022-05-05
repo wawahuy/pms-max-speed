@@ -14,8 +14,9 @@ export type PmsRequestInit = RequestInit & {
 
 export class PmsRequest {
     private static readonly maxRequest: number = 30;
-    private static mutex: PmsParallelMutex = new PmsParallelMutex(PmsRequest.maxRequest);
+    public static readonly mutex: PmsParallelMutex = new PmsParallelMutex(PmsRequest.maxRequest);
 
+    private isDone: boolean = false;
     private isCanceled: boolean = false;
     private retryCounter: number = 0;
     private abortController: AbortController;
@@ -32,6 +33,7 @@ export class PmsRequest {
     }
 
     init() {
+        this.isDone = false;
         this.abortController = new AbortController();
         this.requestInit = {
             signal: this.abortController.signal,
@@ -48,13 +50,15 @@ export class PmsRequest {
 
                 const response = await fetch(this.requestInfo, this.requestInit);
                 response.body.once('error', (err) => {
-                    console.log(err);
+                    this.isDone = true;
                     mutex.release();
                     if (err.name !== 'AbortError') {
+                        console.log(err);
                         this.retry();
                     }
                 })
                 response.body.once('close', () => {
+                    this.isDone = true;
                     mutex.release();
                 })
                 this.responseSubject.next(response);
@@ -71,14 +75,20 @@ export class PmsRequest {
         const r = this.requestInit?.retry || 0;
         if (this.retryCounter++ < r) {
             setTimeout(() => {
-                this.init().catch(e => console.log(e));
+                this.init().catch(err => {
+                    if (err.name !== 'AbortError' && err !== 'AbortError') {
+                        console.log(err);
+                    }
+                });
             })
         }
     }
 
     abort() {
         this.isCanceled = true;
-        this.abortController.abort();
+        if (!this.isDone && this.abortController) {
+            this.abortController.abort();
+        }
     }
 
     getHeaders() {
