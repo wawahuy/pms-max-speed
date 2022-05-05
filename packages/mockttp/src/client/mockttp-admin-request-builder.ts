@@ -3,10 +3,9 @@ import gql from 'graphql-tag';
 
 import { MockedEndpoint, MockedEndpointData } from "../types";
 
-import {
-    buildBodyReader,
-    rawHeadersToObject
-} from '../util/request-utils';
+import { buildBodyReader } from '../util/request-utils';
+import { objectHeadersToRaw, rawHeadersToObject } from '../util/header-utils';
+
 import type { Serialized } from '../serialization/serialization';
 
 import { AdminQuery } from './admin-query';
@@ -34,7 +33,9 @@ function normalizeHttpMessage(message: any, event?: SubscribableEvent) {
         // header data, for maximum accuracy (and to avoid any need to query for both).
         message.headers = rawHeadersToObject(message.rawHeaders);
     } else if (message.headers) {
+        // Backward compat for older servers:
         message.headers = JSON.parse(message.headers);
+        message.rawHeaders = objectHeadersToRaw(message.headers);
     }
 
     if (message.body !== undefined) {
@@ -227,7 +228,12 @@ export class MockttpAdminRequestBuilder {
                     id,
                     statusCode,
                     statusMessage,
-                    headers,
+
+                    ${this.schema.typeHasField('Response', 'rawHeaders')
+                        ? 'rawHeaders'
+                        : 'headers'
+                    }
+
                     body,
                     ${this.schema.asOptionalField('Response', 'timingEvents')}
                     ${this.schema.asOptionalField('Response', 'tags')}
@@ -242,9 +248,13 @@ export class MockttpAdminRequestBuilder {
                     path,
                     hostname,
 
-                    headers,
-                    ${this.schema.asOptionalField('Response', 'timingEvents')}
-                    ${this.schema.asOptionalField('Response', 'tags')}
+                    ${this.schema.typeHasField('Request', 'rawHeaders')
+                        ? 'rawHeaders'
+                        : 'headers'
+                    }
+
+                    ${this.schema.asOptionalField('Request', 'timingEvents')}
+                    ${this.schema.asOptionalField('Request', 'tags')}
                 }
             }`,
             'tls-client-error': gql`subscription OnTlsClientError {
@@ -269,7 +279,12 @@ export class MockttpAdminRequestBuilder {
                         method
                         url
                         path
-                        headers
+
+                        ${this.schema.typeHasField('ClientErrorRequest', 'rawHeaders')
+                            ? 'rawHeaders'
+                            : 'headers'
+                        }
+
                         ${this.schema.asOptionalField('ClientErrorRequest', 'remoteIpAddress')},
                         ${this.schema.asOptionalField('ClientErrorRequest', 'remotePort')},
                     }
@@ -279,7 +294,12 @@ export class MockttpAdminRequestBuilder {
                         tags
                         statusCode
                         statusMessage
-                        headers
+
+                        ${this.schema.typeHasField('Response', 'rawHeaders')
+                            ? 'rawHeaders'
+                            : 'headers'
+                        }
+
                         body
                     }
                 }

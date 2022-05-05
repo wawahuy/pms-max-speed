@@ -42,10 +42,12 @@ import {
     buildInitiatedRequest,
     tryToParseHttp,
     buildBodyReader,
-    getPathFromAbsoluteUrl,
+    getPathFromAbsoluteUrl
+} from "../util/request-utils";
+import {
     pairFlatRawHeaders,
     rawHeadersToObject
-} from "../util/request-utils";
+} from "../util/header-utils";
 import { AbortError } from "../rules/requests/request-handlers";
 import { WebSocketRuleData, WebSocketRule } from "../rules/websockets/websocket-rule";
 import { RejectWebSocketHandler, WebSocketHandler } from "../rules/websockets/websocket-handlers";
@@ -732,6 +734,7 @@ ${await this.suggestRule(request)}`
                 url: parsedRequest.url,
                 path: parsedRequest.path,
                 headers: parsedRequest.headers || {},
+                rawHeaders: parsedRequest.rawHeaders || [],
                 remoteIpAddress: socket.remoteAddress,
                 remotePort: socket.remotePort
             };
@@ -741,7 +744,8 @@ ${await this.suggestRule(request)}`
             if (socket.writable) {
                 response = {
                     ...commonParams,
-                    headers: { 'Connection': 'close' },
+                    headers: { 'connection': 'close' },
+                    rawHeaders: [['Connection', 'close']],
                     statusCode:
                         isHeaderOverflow
                             ? 431
@@ -808,7 +812,8 @@ ${await this.suggestRule(request)}`
 
                 // Unknowable:
                 path: undefined,
-                headers: {}
+                headers: {},
+                rawHeaders: []
             },
             response: 'aborted' // These h2 errors get no app-level response, just a shutdown.
         });

@@ -9,7 +9,8 @@ import {
     Headers,
     CompletedRequest,
     CompletedBody,
-    Explainable
+    Explainable,
+    RawHeaders
 } from "../../types";
 
 import { MaybePromise, Replace } from '../../util/type-utils';
@@ -432,11 +433,15 @@ export class FileHandlerDefinition extends Serializable implements RequestHandle
     }
 }
 
+// This is different from CompletedResponse because CompletedResponse is a client request to Mockttp
+// whereas this is a real response from an upstream server that we modify before forwarding.
+// We aim for a similar shape, but they're not exactly the same.
 export interface PassThroughResponse {
     id: string;
     statusCode: number;
     statusMessage?: string;
     headers: Headers;
+    rawHeaders: RawHeaders;
     body: CompletedBody;
 }
 
@@ -910,7 +915,7 @@ export class PassThroughHandlerDefinition extends Serializable implements Reques
             clientCertificateHostMap: _.mapValues(this.clientCertificateHostMap,
                 ({ pfx, passphrase }) => ({ pfx: serializeBuffer(pfx), passphrase })
             ),
-            transformRequest: {
+            transformRequest: this.transformRequest ? {
                 ...this.transformRequest,
                 // Body is always serialized as a base64 buffer:
                 replaceBody: !!this.transformRequest?.replaceBody
@@ -929,8 +934,8 @@ export class PassThroughHandlerDefinition extends Serializable implements Reques
                         (k, v) => v === undefined ? SERIALIZED_OMIT : v
                     )
                     : undefined
-            },
-            transformResponse: {
+            } : undefined,
+            transformResponse: this.transformResponse ? {
                 ...this.transformResponse,
                 // Body is always serialized as a base64 buffer:
                 replaceBody: !!this.transformResponse?.replaceBody
@@ -949,7 +954,7 @@ export class PassThroughHandlerDefinition extends Serializable implements Reques
                         (k, v) => v === undefined ? SERIALIZED_OMIT : v
                     )
                     : undefined
-            },
+            } : undefined,
             hasBeforeRequestCallback: !!this.beforeRequest,
             hasBeforeResponseCallback: !!this.beforeResponse
         };

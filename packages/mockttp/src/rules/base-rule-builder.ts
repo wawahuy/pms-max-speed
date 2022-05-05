@@ -31,7 +31,7 @@ import {
     HostMatcher,
     CallbackMatcher,
     HostnameMatcher,
-    PortMatcher, QueryRegexpMatcher
+    PortMatcher
 } from "./matchers";
 
 /**
@@ -145,11 +145,6 @@ export abstract class BaseRuleBuilder {
      */
     withQuery(query: { [key: string]: string | number | (string | number)[] }): this {
         this.matchers.push(new QueryMatcher(query));
-        return this;
-    }
-
-    withSomeQuery(query: { [key: string]: RegExp }): this {
-        this.matchers.push(new QueryRegexpMatcher(query));
         return this;
     }
 

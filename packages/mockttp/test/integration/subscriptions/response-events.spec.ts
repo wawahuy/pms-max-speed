@@ -163,6 +163,30 @@ describe("Response subscriptions", () => {
 
             expect(timingEvents.abortedTimestamp).to.equal(undefined);
         });
+
+        it("should include raw header data", async () => {
+            await server.forGet('/mocked-endpoint').thenReply(200, undefined, {
+                "first-header": "1",
+                "UPPERCASE-header": "value",
+                "last-header": "2",
+            });
+
+            let seenResponsePromise = getDeferred<CompletedResponse>();
+            await server.on('response', (r) => seenResponsePromise.resolve(r));
+
+            fetch(server.urlFor("/mocked-endpoint"));
+
+            let seenResponse = await seenResponsePromise;
+            expect(seenResponse.rawHeaders).to.deep.equal([
+                ...(isNode
+                    ? []
+                    : [['access-control-allow-origin', '*']]
+                ),
+                ["first-header", "1"],
+                ["UPPERCASE-header", "value"],
+                ["last-header", "2"]
+            ]);
+        });
     });
 
     describe("with an HTTP server allowing only tiny bodies", () => {
@@ -284,6 +308,10 @@ describe("Abort subscriptions", () => {
         let seenAbort = await seenAbortPromise;
         expect(seenRequest.id).to.equal(seenAbort.id);
         expect(seenRequest.tags).to.deep.equal([]);
+        expect(seenRequest.headers['host']).to.deep.equal(`localhost:${server.port}`);
+        expect(
+            seenRequest.rawHeaders.find(([key]) => key === 'Host')
+        ).to.deep.equal(['Host', `localhost:${server.port}`]); // Uppercase header name!
     });
 
     it("should be sent when a request is aborted during an intentional timeout", async () => {

@@ -21,7 +21,8 @@ import {
     startDnsServer,
     destroyable,
     DestroyableServer,
-    H2_TLS_ON_TLS_SUPPORTED
+    H2_TLS_ON_TLS_SUPPORTED,
+    OLD_TLS_SUPPORTED
 } from "../test-utils";
 import { CA } from "../../src/util/tls";
 import { isLocalIPv6Available } from "../../src/util/socket-util";
@@ -145,7 +146,11 @@ nodeOnly(() => {
                 await remoteServer.forAnyRequest().thenCallback(async (req) => ({
                     statusCode: 200,
                     body: await req.body.getText(),
-                    headers: { "my-header": "123" }
+                    headers: {
+                        "first": "hi",
+                        "second": "bye",
+                        "my-UPPERCASE-header": "123"
+                    }
                 }));
 
                 await server.forGet(remoteServer.url).thenPassThrough();
@@ -155,8 +160,14 @@ nodeOnly(() => {
                     resolveWithFullResponse: true
                 });
 
-                expect(response.headers['my-header']).to.equal('123');
                 expect(response.headers['date']).to.equal(undefined); // No default headers added!
+                expect(response.headers['my-uppercase-header']).to.equal('123');
+
+                expect(response.rawHeaders).to.deep.equal([ // Preserves raw header details:
+                    'first', 'hi',
+                    'second', 'bye', // Preserves order!
+                    'my-UPPERCASE-header', '123' // Preserves case!
+                ]);
             });
 
             it("should be able to pass through requests with a body", async () => {
@@ -673,6 +684,32 @@ nodeOnly(() => {
                 expect(response.statusCode).to.equal(200);
             });
 
+            it("should be able to examine a response's raw headers in beforeResponse", async () => {
+                await remoteServer.forGet('/').thenCallback(() => ({
+                    status: 500,
+                    headers: {
+                        'UPPERCASE-HEADER': 'VALUE'
+                    }
+                }));
+
+                await server.forGet(remoteServer.urlFor("/")).thenPassThrough({
+                    beforeResponse: (res) => {
+                        expect(res.headers).to.deep.equal({
+                            'uppercase-header': 'VALUE'
+                        });
+
+                        expect(res.rawHeaders).to.deep.equal([
+                            ['UPPERCASE-HEADER', 'VALUE']
+                        ]);
+
+                        return { status: 200, body: 'all good' };
+                    }
+                });
+
+                let response = await request.get(remoteServer.urlFor("/"));
+                expect(response).to.equal('all good');
+            });
+
             it("should be able to rewrite a response's status", async () => {
                 await remoteServer.forGet('/').thenReply(404);
                 await server.forGet(remoteServer.urlFor("/")).thenPassThrough({
@@ -1130,6 +1167,10 @@ nodeOnly(() => {
                 });
 
                 describe("given a TLSv1 upstream server", () => {
+
+                    before(function () {
+                        if (!semver.satisfies(process.version, OLD_TLS_SUPPORTED)) this.skip();
+                    });
 
                     let oldServerPort: number;
                     let oldServer: DestroyableServer & https.Server;

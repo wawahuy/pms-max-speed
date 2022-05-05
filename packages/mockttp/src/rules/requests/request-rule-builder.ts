@@ -185,8 +185,6 @@ export class RequestRuleBuilder extends BaseRuleBuilder {
         return this.addRule(rule);
     }
 
-
-
     /**
      * Respond immediately with the given status (and optionally, headers),
      * and then stream the given stream directly as the response body.
@@ -215,7 +213,6 @@ export class RequestRuleBuilder extends BaseRuleBuilder {
 
         return this.addRule(rule);
     }
-
 
     /**
      * Reply to matched requests with a given status code and the current contents

@@ -57,7 +57,7 @@ export interface Request {
     hostname?: string;
 
     headers: Headers;
-    rawHeaders?: RawHeaders; // Not set remotely with older servers
+    rawHeaders: RawHeaders;
 
     timingEvents: TimingEvents | {};
     tags: string[];
@@ -159,7 +159,7 @@ export interface TimingEvents {
 export interface OngoingResponse extends http.ServerResponse {
     id: string;
     getHeaders(): Headers;
-    rawHeaders: RawHeaders;
+    getRawHeaders(): RawHeaders;
     body: OngoingBody;
     timingEvents: TimingEvents;
     tags: string[];
@@ -170,6 +170,7 @@ export interface CompletedResponse {
     statusCode: number;
     statusMessage: string;
     headers: Headers;
+    rawHeaders: RawHeaders;
     body: CompletedBody;
     timingEvents: TimingEvents | {};
     tags: string[];
@@ -193,7 +194,9 @@ export interface ClientError {
         method?: string;
         url?: string;
         path?: string;
+
         headers: Headers;
+        rawHeaders: RawHeaders;
 
         remoteIpAddress?: string;
         remotePort?: number;

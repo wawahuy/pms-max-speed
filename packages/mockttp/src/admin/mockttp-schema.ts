@@ -76,6 +76,7 @@ export const MockttpSchema = gql`
         url: String
         path: String
         headers: Json
+        rawHeaders: Json
         remoteIpAddress: String!
         remotePort: Int!
     }
@@ -129,6 +130,7 @@ export const MockttpSchema = gql`
         statusMessage: String!
 
         headers: Json!
+        rawHeaders: Json!
         body: Buffer!
     }
 `;
