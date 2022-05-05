@@ -449,12 +449,12 @@ export default class AVLTree {
    * @return {?Node}
    */
   find (key) {
-    var root = this._root;
+    let root = this._root;
     // if (root === null)    return null;
     // if (key === root.key) return root;
 
-    var subtree = root, cmp;
-    var compare = this._comparator;
+    let subtree = root, cmp;
+    let compare = this._comparator;
     while (subtree) {
       cmp = compare(key, subtree.key);
       if      (cmp === 0) return subtree;
@@ -466,32 +466,16 @@ export default class AVLTree {
   }
 
   nodeBeforeKey (key) {
-    let current = this._root;
-    let s = [], done = false, i = 0, prev = null;
+    let current = this._root, compare = this._comparator;
+    let prev = null, cmp;
 
-    while (!done) {
-      // Reach the left most Node of the current Node
-      if (current) {
-        // Place pointer to a tree node on the stack
-        // before traversing the node's left subtree
-        s.push(current);
+    while (current) {
+      cmp = compare(key, current.key);
+      if (cmp <= 0) {
         current = current.left;
       } else {
-        // BackTrack from the empty subtree and visit the Node
-        // at the top of the stack; however, if the stack is
-        // empty you are done
-        if (s.length > 0) {
-          current = s.pop();
-          if (current.key >= key) {
-            return prev;
-          }
-          prev = current;
-          i++;
-
-          // We have visited the node and its left
-          // subtree. Now, it's right subtree's turn
-          current = current.right;
-        } else done = true;
+        prev = current;
+        current = current.right;
       }
     }
 
@@ -499,35 +483,20 @@ export default class AVLTree {
   }
 
   nodeAfterKey (key) {
-    let current = this._root;
-    let s = [], done = false, i = 0;
+    let current = this._root, compare = this._comparator;
+    let cmp, next = null;
 
-    while (!done) {
-      // Reach the left most Node of the current Node
-      if (current) {
-        // Place pointer to a tree node on the stack
-        // before traversing the node's left subtree
-        s.push(current);
+    while (current) {
+      cmp = compare(key, current.key);
+      if (cmp < 0) {
+        next = current;
         current = current.left;
       } else {
-        // BackTrack from the empty subtree and visit the Node
-        // at the top of the stack; however, if the stack is
-        // empty you are done
-        if (s.length > 0) {
-          current = s.pop();
-          if (current.key > key) {
-            return current;
-          }
-          i++;
-
-          // We have visited the node and its left
-          // subtree. Now, it's right subtree's turn
-          current = current.right;
-        } else done = true;
+        current = current.right;
       }
     }
 
-    return null;
+    return next;
   }
 
   /**
@@ -555,8 +524,11 @@ export default class AVLTree {
       while (node) {
         cmp = compare(key, node.key);
         parent = node;
-        if      (cmp === 0) return null;
-        else if (cmp < 0)   node = node.left;
+        if (cmp === 0) {
+          // when duplicate, replace data
+          node.data = data;
+          return node;
+        } else if (cmp < 0)   node = node.left;
         else                node = node.right;
       }
     } else {
