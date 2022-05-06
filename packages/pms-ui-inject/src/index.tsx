@@ -3,7 +3,7 @@ import ReactDOM from "react-dom";
 
 const App = () => {
     const test = (): number => {
-        return 2;
+        return 4;
     }
     return <>{test()}</>;
 }
