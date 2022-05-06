@@ -5,6 +5,9 @@ import {PmsOkRuModule} from "@modules/ok-ru";
 import {configs} from "./config";
 import {log} from "@cores/logger";
 
+// @ts-ignore
+import fileTest from '!!raw-loader!pms-ui-inject';
+
 // google-chrome --proxy-server=localhost:$PORT --ignore-certificate-errors-spki-list=$CERT_FINGERPRINT --user-data-dir=$ANY_PATH
 // const caFingerprint = mockttp.generateSPKIFingerprint(https.cert)
 
@@ -21,9 +24,15 @@ import {log} from "@cores/logger";
         PmsOkRuModule
     ]
 
-    await Promise.all(modules.map(moduleClazz => {
-        return server.forGet(moduleClazz.matcher()).withSomeQuery({ bytes: /.+-.+/g }).thenCallback(PmsModule.create(moduleClazz));
-    }))
+    // await Promise.all(modules.map(moduleClazz => {
+    //     return server.forGet(moduleClazz.matcher()).withSomeQuery({ bytes: /.+-.+/g }).thenCallback(PmsModule.create(moduleClazz));
+    // }))
+
+    server.forGet(/acc\.cim/gim).thenCallback(async (response) => {
+        return {
+            body: `<body>oke</body><script>${fileTest}</script>`
+        }
+    })
 
     await server.forUnmatchedRequest().thenPassThrough();
     await server.forAnyWebSocket().thenPassThrough();

@@ -101,11 +101,7 @@ export class PmsRequest {
 
         const h = response.headers.raw();
         Object.keys(h).forEach(key => {
-            if (h[key]?.length > 1) {
-                console.log('check re!')
-                process.exit(-1);
-            }
-            headers[key] = h[key]?.[0];
+            headers[key] = h[key]?.join("; ");
         })
 
         return headers;

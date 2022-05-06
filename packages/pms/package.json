@@ -1,14 +1,15 @@
 {
-  "name": "my-webpack-project",
+  "name": "pms",
   "version": "1.0.0",
-  "description": "My webpack project",
-  "main": "index.js",
+  "description": "PMS cores",
+  "main": "dist/main.js",
   "scripts": {
     "test": "jest",
     "test:watch": "jest --watch",
     "build:dev": "webpack --mode=development",
     "build:prod": "webpack --mode=production --node-env=production",
-    "watch": "webpack --watch"
+    "watch": "webpack --watch",
+    "start:prod": "node dist/main.js"
   },
   "repository": {
     "type": "git",
@@ -26,25 +27,24 @@
     "@types/node": "^17.0.29",
     "@types/node-fetch": "^2.6.1",
     "@webpack-cli/generators": "^2.4.2",
-    "express": "^4.18.1",
+    "jest": "^28.0.3",
     "nodemon-webpack-plugin": "^4.7.1",
+    "raw-loader": "^4.0.2",
     "rimraf": "^3.0.2",
     "ts-jest": "^27.1.4",
     "ts-loader": "^9.3.0",
     "typescript": "^4.6.4",
     "webpack": "^5.72.0",
+    "webpack-bundle-analyzer": "^4.5.0",
     "webpack-cli": "^4.9.2",
     "webpack-node-externals": "^3.0.0"
   },
   "dependencies": {
     "abort-controller": "^3.0.0",
-    "chrome-paths": "^1.0.1",
-    "jest": "^27.5.1",
-    "mockttp": "file:../mockttp",
     "avl": "file:../avl",
-    "pms-ui-inject": "file:../pms-ui-inject",
+    "mockttp": "file:../mockttp",
     "node-fetch": "^2.6.7",
-    "query-string": "^7.1.1",
+    "pms-ui-inject": "file:../pms-ui-inject",
     "rxjs": "^7.5.5",
     "winston": "^3.7.2"
   }
