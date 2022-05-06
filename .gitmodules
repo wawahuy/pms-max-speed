@@ -1,0 +1,3 @@
+[submodule "packages/pms-proxy"]
+	path = packages/pms-proxy
+	url = https://github.com/wawahuy/pms-proxy.git
