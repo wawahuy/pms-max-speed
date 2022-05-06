@@ -305,7 +305,7 @@ function copyAddressDetails(
     target: SocketIsh<'localAddress' | 'localPort' | 'remoteAddress' | 'remotePort'>
 ) {
     const fields = ['localAddress', 'localPort', 'remoteAddress', 'remotePort'] as const;
-    Object.defineProperties(target, _.zipObject(fields,
+    Object.defineProperties(target, (<any>_).zipObject(fields,
         _.range(fields.length).map(() => ({ writable: true }))
     ));
     fields.forEach((fieldName) => {
