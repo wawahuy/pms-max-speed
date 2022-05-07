@@ -1,31 +1,28 @@
-import {CompletedRequest} from "mockttp";
-import {MaybePromise} from "mockttp/src/util/type-utils";
-import {CallbackResponseResult} from "mockttp/src/rules/requests/request-handler-definitions";
+import {PmsProxyRule} from "pms-proxy/dist/rule";
+import {PmsServerRequest, PmsServerResponse} from "pms-proxy/dist/server";
+import {PmsServerCallbackHandler} from "pms-proxy/dist/handler";
 
 export abstract class PmsModule {
-    protected outCallback: (data: CallbackResponseResult | 'close') => void;
+    protected request: PmsServerRequest;
+    protected response: PmsServerResponse;
 
-    constructor(
-        protected request: CompletedRequest,
-    ) {
+    constructor() {
     }
 
-    static matcher: () => RegExp;
-    static create<T extends PmsModule>(clazz: new (...args: any[]) => T, ...args: any[]) {
-        return (request: CompletedRequest) => {
-            const o = new clazz(request);
-            return o._init()
-        }
+    static rule: () => PmsProxyRule;
+    static create<T extends PmsModule>(clazz: new (...args: any[]) => T, ...args: any[]): PmsServerCallbackHandler {
+        const o = new clazz();
+        return o._init()
     }
 
     public abstract init(): void;
 
-    private _init(): MaybePromise<CallbackResponseResult | 'close'> {
-        const promise = new Promise<CallbackResponseResult | 'close'>(res => {
-            this.outCallback = res;
-        })
-        this.init();
-        return promise;
+    private _init() {
+        const handler: PmsServerCallbackHandler = (req, res) => {
+            this.request = req;
+            this.response = res;
+            this.init();
+        }
+        return handler;
     }
-
 }

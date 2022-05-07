@@ -42,8 +42,8 @@
   "dependencies": {
     "abort-controller": "^3.0.0",
     "avl": "file:../avl",
-    "mockttp": "file:../mockttp",
     "node-fetch": "^2.6.7",
+    "pms-proxy": "file:../pms-proxy",
     "pms-ui-inject": "file:../pms-ui-inject",
     "rxjs": "^7.5.5",
     "winston": "^3.7.2"

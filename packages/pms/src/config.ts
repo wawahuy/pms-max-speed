@@ -10,7 +10,7 @@ export const configs = {
      * Root App Directory
      *
      */
-    rootAppDir: __dirname,
+    rootAppDir: process.env.NODE_ENV == 'production' ? process.cwd() : __dirname,
 
 
     proxyPort: 1234

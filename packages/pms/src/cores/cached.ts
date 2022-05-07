@@ -1,11 +1,11 @@
-import {CompletedRequest} from "mockttp";
 import Url from "url";
 import {PmsBufferCallback, PmsBufferRange} from "@cores/types";
 import {PmsBufferTree} from "@cores/buffer-tree";
 import {PmsRequest} from "@cores/request";
+import {PmsServerRequest} from "pms-proxy/dist/server";
 
 export abstract class PmsCached {
-    protected request: CompletedRequest;
+    protected request: PmsServerRequest;
     protected url: Url.UrlWithParsedQuery;
     protected bufferTree: PmsBufferTree;
     protected requestFeatures: PmsRequest[];
@@ -36,7 +36,7 @@ export abstract class PmsCached {
         return this.bufferTree.waitBuffer(range, callback);
     }
 
-    setRequest(request: CompletedRequest) {
+    setRequest(request: PmsServerRequest) {
         this.request = request;
         this.url = Url.parse(request.url, true);
     };

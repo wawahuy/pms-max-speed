@@ -1,9 +1,9 @@
-import * as mockttp from 'mockttp';
 import path from 'path';
 import {PmsModule} from "@cores/module";
 import {PmsOkRuModule} from "@modules/ok-ru";
 import {configs} from "./config";
 import {log} from "@cores/logger";
+import {PmsServerProxy} from "pms-proxy";
 
 // @ts-ignore
 import fileTest from '!!raw-loader!pms-ui-inject';
@@ -12,32 +12,22 @@ import fileTest from '!!raw-loader!pms-ui-inject';
 // const caFingerprint = mockttp.generateSPKIFingerprint(https.cert)
 
 (async () => {
-    // Create a proxy server with a self-signed HTTPS CA certificate:
-    const server = mockttp.getLocal({
+    const server = new PmsServerProxy({
         https: {
             keyPath: path.join(__dirname, '../certs/rootCA.key'),
             certPath: path.join(__dirname, '../certs/rootCA.pem'),
         }
-    });
+    })
 
     const modules = [
         PmsOkRuModule
     ]
 
-    // await Promise.all(modules.map(moduleClazz => {
-    //     return server.forGet(moduleClazz.matcher()).withSomeQuery({ bytes: /.+-.+/g }).thenCallback(PmsModule.create(moduleClazz));
-    // }))
-
-    server.forGet(/acc\.cim/gim).thenCallback(async (response) => {
-        return {
-            body: `<body>oke</body><script>${fileTest}</script>`
-        }
+    modules.map(moduleClazz => {
+        return server.addRule(moduleClazz.rule()).setHandler(PmsModule.create(moduleClazz));
     })
 
-    await server.forUnmatchedRequest().thenPassThrough();
-    await server.forAnyWebSocket().thenPassThrough();
-    await server.start(configs.proxyPort);
+    await server.listen(configs.proxyPort);
 
-    // Print out the server details:
-    log.info(`Server proxy running on port ${server.port}`);
+    log.info(`Server proxy running on port ${configs.proxyPort}`);
 })();

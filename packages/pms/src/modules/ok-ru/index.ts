@@ -2,6 +2,7 @@ import Url from 'url';
 import {PmsModule} from "@cores/module";
 import {PmsBufferRange} from "@cores/types";
 import {PmsOkRuCachedManager} from "@modules/ok-ru/cached-manager";
+import {PmsProxyRule} from "pms-proxy/dist/rule";
 
 export class PmsOkRuModule extends PmsModule {
     url: Url.UrlWithParsedQuery;
@@ -10,8 +11,11 @@ export class PmsOkRuModule extends PmsModule {
 
     public static cachedManager: PmsOkRuCachedManager = new PmsOkRuCachedManager();
 
-    static matcher(): RegExp {
-        return /(mycdn\.me)|(vkuser\.net)/g;
+    static rule() {
+        const r = new PmsProxyRule();
+        r.host(/(mycdn\.me)|(vkuser\.net)/g);
+        r.query("bytes", /\d+-\d+/g);
+        return r;
     }
 
     init() {
@@ -45,11 +49,12 @@ export class PmsOkRuModule extends PmsModule {
                     }
                     headers['content-length'] = buffer.length.toString();
                 }
-                this.outCallback({
-                    statusCode: 200,
-                    body: buffer,
-                    headers
-                })
+
+                console.log(headers);
+
+                this.response.writeHead(200, headers);
+                this.response.write(buffer);
+                this.response.end();
             })
         }
     }

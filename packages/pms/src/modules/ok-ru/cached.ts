@@ -32,7 +32,8 @@ export class PmsOkRuCached extends PmsCached  {
         const option: PmsRequestInit = {
             headers: <any>this.request.headers,
             timeout: 5000,
-            retry: 3
+            retry: 3,
+            compress: false
         }
         const request = new PmsRequest(url, option);
         request.init().then(r => {

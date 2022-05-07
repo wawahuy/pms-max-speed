@@ -1,10 +1,10 @@
 import {KeyPair} from "@cores/types";
 import {PmsCached} from "@cores/cached";
 import AVLTree from "avl";
-import {CompletedRequest} from "mockttp";
 import Url from "url";
 import {log} from "@cores/logger";
 import {PmsRequest} from "@cores/request";
+import {PmsServerRequest} from "pms-proxy/dist/server";
 
 export abstract class PmsCachedManager<T extends PmsCached> {
     private cachedTree: AVLTree<string, T>;
@@ -20,11 +20,11 @@ export abstract class PmsCachedManager<T extends PmsCached> {
         })
     }
 
-    protected abstract isRenewCached(cached: T, request: CompletedRequest, url: Url.UrlWithParsedQuery): boolean;
+    protected abstract isRenewCached(cached: T, request: PmsServerRequest, url: Url.UrlWithParsedQuery): boolean;
     protected abstract buildCachedNode(): T;
-    protected abstract makeQueryKey(request: CompletedRequest, url: Url.UrlWithParsedQuery): KeyPair<string>;
+    protected abstract makeQueryKey(request: PmsServerRequest, url: Url.UrlWithParsedQuery): KeyPair<string>;
 
-    getCached(request: CompletedRequest): T | undefined {
+    getCached(request: PmsServerRequest): T | undefined {
         if (this.cachedLastedTimeout) {
             clearTimeout(this.cachedLastedTimeout);
             this.cachedLastedTimeout = null;
