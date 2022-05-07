@@ -25,7 +25,8 @@ export class PmsBufferTree {
                 .then(buffer => {
                     this.insertBuffer(range, buffer);
                 })
-                .catch(() => {
+                .catch(err => {
+                    console.log(err);
                     console.log('failed load', range);
                     this.removeBuffer(range);
                 })

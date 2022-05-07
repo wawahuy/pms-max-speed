@@ -4,9 +4,7 @@ import {PmsOkRuModule} from "@modules/ok-ru";
 import {configs} from "./config";
 import {log} from "@cores/logger";
 import {PmsServerProxy} from "pms-proxy";
-
-// @ts-ignore
-import fileTest from '!!raw-loader!pms-ui-inject';
+import {PmsUiInjectModule} from "@modules/ui-inject";
 
 // google-chrome --proxy-server=localhost:$PORT --ignore-certificate-errors-spki-list=$CERT_FINGERPRINT --user-data-dir=$ANY_PATH
 // const caFingerprint = mockttp.generateSPKIFingerprint(https.cert)
@@ -20,7 +18,8 @@ import fileTest from '!!raw-loader!pms-ui-inject';
     })
 
     const modules = [
-        PmsOkRuModule
+        PmsUiInjectModule,
+        PmsOkRuModule,
     ]
 
     modules.map(moduleClazz => {
