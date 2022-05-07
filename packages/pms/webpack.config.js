@@ -11,10 +11,6 @@ const isProduction = process.env.NODE_ENV == 'production';
 
 const externals = () => {
     const externalLibs = [
-        'mockttp',
-        // '_stream_wrap',  // mockttp lib exclude http toolkit
-        // 'coffee-script', // vm2 lib
-        // 'bufferutil', 'utf-8-validate', //ws lib
     ];
     if (isProduction) {
         const check = lib => {
