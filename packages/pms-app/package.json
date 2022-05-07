@@ -10,9 +10,7 @@
   },
   "pkg": {
     "scripts": "bin/**/*.js",
-    "assets": [
-      "node_modules/mockttp/node_modules/**/*"
-    ],
+    "assets": [],
     "targets": [
       "node14-win-x64"
     ],
@@ -21,7 +19,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "mockttp": "file:../mockttp",
     "pms": "file:../pms"
   },
   "devDependencies": {
