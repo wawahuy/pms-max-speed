@@ -1,11 +1,13 @@
 import React from "react";
 import ReactDOM from "react-dom";
+import {StatusBar} from "./components/StatusBar";
 
 const App = () => {
-    const test = (): number => {
-        return 4;
-    }
-    return <>{test()}</>;
+    return (
+        <>
+            <StatusBar />
+        </>
+    )
 }
 
 ReactDOM.render(
