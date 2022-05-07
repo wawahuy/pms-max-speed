@@ -26,6 +26,7 @@ export class PmsBufferTree {
                     this.insertBuffer(range, buffer);
                 })
                 .catch(() => {
+                    console.log('failed load', range);
                     this.removeBuffer(range);
                 })
         })
@@ -33,7 +34,7 @@ export class PmsBufferTree {
     }
 
     insertBuffer(range: PmsBufferRange, buffer: Buffer) {
-        // console.log('insert', range);
+        console.log('insert', range);
         const node: PmsBufferNode = { ...range, buffer };
         return this.insertOrReplaceNode(node);
     }
@@ -171,12 +172,10 @@ export class PmsBufferTree {
             }
             return list;
         }, []);
-        const t = timer('buffer concat');
         const buffer = Buffer.concat(buffers);
         const start = range.start - nodes[0].start;
         const end = start + (range.end - range.start) + 1;
         const result = buffer.slice(start, end);
-        t();
         return result;
     }
 

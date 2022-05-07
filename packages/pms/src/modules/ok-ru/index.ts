@@ -36,6 +36,7 @@ export class PmsOkRuModule extends PmsModule {
             const time = new Date().getTime();
             cached.getBuffer(range, buffer => {
                 console.log('---------res-----------')
+                console.log(range, this.id);
                 console.log(this.request.url);
                 console.log(buffer.length/1024/1024, 'Mb -',((buffer.length/1024/1024)/((new Date().getTime() - time)/1000)).toFixed(2), 'Mb/S')
                 const headers = cached.getHeaderLasted();
@@ -49,8 +50,6 @@ export class PmsOkRuModule extends PmsModule {
                     }
                     headers['content-length'] = buffer.length.toString();
                 }
-
-                console.log(headers);
 
                 this.response.writeHead(200, headers);
                 this.response.write(buffer);

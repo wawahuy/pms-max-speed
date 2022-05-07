@@ -52,6 +52,7 @@ export class PmsRequest {
                 response.body.once('error', (err) => {
                     this.isDone = true;
                     mutex.release();
+                    console.log('what????', err);
                     if (err.name !== 'AbortError') {
                         console.log(err);
                         this.retry();
@@ -64,6 +65,7 @@ export class PmsRequest {
                 this.responseSubject.next(response);
                 resolve(this);
             } catch (e) {
+                console.log('what??', e)
                 mutex.release();
                 this.retry();
                 reject(e);
