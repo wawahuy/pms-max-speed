@@ -2,10 +2,10 @@ import Url from "url";
 import {PmsBufferCallback, PmsBufferRange} from "@cores/types";
 import {PmsBufferTree} from "@cores/buffer-tree";
 import {PmsRequest} from "@cores/request";
-import {PmsServerRequest} from "pms-proxy/dist/server";
+import {PPServerRequest} from "pms-proxy";
 
 export abstract class PmsCached {
-    protected request: PmsServerRequest;
+    protected request: PPServerRequest;
     protected url: Url.UrlWithParsedQuery;
     protected bufferTree: PmsBufferTree;
     protected requestFeatures: PmsRequest[];
@@ -36,7 +36,7 @@ export abstract class PmsCached {
         return this.bufferTree.waitBuffer(range, callback);
     }
 
-    setRequest(request: PmsServerRequest) {
+    setRequest(request: PPServerRequest) {
         this.request = request;
         this.url = Url.parse(request.url, true);
     };

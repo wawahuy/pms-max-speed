@@ -10,13 +10,17 @@ const isProduction = process.env.NODE_ENV == 'production';
 
 
 const externals = () => {
+    const devLibs = [
+        'bufferutil',
+        'utf-8-validate',
+    ];
     const externalLibs = [
     ];
     if (isProduction) {
         const check = lib => {
             return !externalLibs.includes(lib);
         }
-        return [nodeExternals({ allowlist: check })]
+        return [...devLibs, nodeExternals({ allowlist: check })]
     }
 
     // in order to ignore all modules in node_modules folder

@@ -1,15 +1,12 @@
-import {PmsModule} from "@cores/module";
-import {PmsProxyRule} from "pms-proxy/dist/rule";
-import {PmsServerPassThroughHandler} from "pms-proxy/dist/handler";
-
 // @ts-ignore
 import sourceUiInject from '!!raw-loader!pms-ui-inject';
-import * as Buffer from "buffer";
+import {PmsModule} from "@cores/module";
+import {PPHttpRule, PPPassThroughHttpHandler} from "pms-proxy";
 
 export class PmsUiInjectModule extends PmsModule {
 
     static rule() {
-        const r = new PmsProxyRule();
+        const r = new PPHttpRule();
         r.url([
             /https\:\/\/www\.ok\.ru\/videoembed\//gmi
         ]);
@@ -17,7 +14,7 @@ export class PmsUiInjectModule extends PmsModule {
     }
 
     init(): void {
-        const passThrough = new PmsServerPassThroughHandler();
+        const passThrough = new PPPassThroughHttpHandler();
         passThrough.injectBuffer((req, buffer) => {
             let data: string | Buffer = buffer;
             if (!req.url.endsWith(".js")) {
