@@ -1,6 +1,7 @@
 import {MayBePromise, PPIncomingMessage, PPWsHandler, PPWebsocket, PPWebsocketRawData} from "pms-proxy";
 import {log} from "@cores/logger";
 import AVLTree from "avl";
+import {PmsDataWatcher} from "@analytics/data-watcher";
 
 enum WsCommand {
     StatusBar = 1
@@ -21,58 +22,53 @@ export class PmsServerAnalytics extends PPWsHandler {
     private sockets: AVLTree<number, PPWebsocket>;
 
     private speedTotal: number = 0;
-    private statusBarData: StatusBarData = {
-        requestQueue: 0,
-        requestCurrent: 0,
-        bandwidth: 0,
-        speed: 0
-    };
+    private statusBarData: PmsDataWatcher<StatusBarData>;
 
     private constructor() {
         super();
         this.sockets = new AVLTree<number, PPWebsocket>(undefined, true);
+        this.statusBarData = new PmsDataWatcher<StatusBarData>(100, {
+            requestQueue: 0,
+            requestCurrent: 0,
+            bandwidth: 0,
+            speed: 0
+        })
+        this.statusBarData.change$.subscribe(data => {
+            this.broadcast(WsCommand.StatusBar, data);
+        })
         setInterval(() => {
             if (this.speedTotal) {
-                this.statusBarData.speed = this.speedTotal;
+                this.statusBarData.change({ speed: this.speedTotal });
                 this.speedTotal = 0;
             } else {
-                this.statusBarData.speed = 0;
+                this.statusBarData.change({ speed: 0 });
             }
-            this.broadcast(WsCommand.StatusBar, {
-                speed: this.statusBarData.speed
-            })
         }, 1000)
     }
 
     analyticsRequestCurrent(inc: number) {
-        this.statusBarData.requestCurrent += inc;
-        this.broadcast(WsCommand.StatusBar, {
-            requestCurrent: this.statusBarData.requestCurrent
-        })
+        const value = this.statusBarData.value;
+        this.statusBarData.change({ requestCurrent: value.requestCurrent + inc });
     }
 
     analyticsRequestQueue(inc: number) {
-        this.statusBarData.requestQueue += inc;
-        this.broadcast(WsCommand.StatusBar, {
-            requestQueue: this.statusBarData.requestQueue
-        })
+        const value = this.statusBarData.value;
+        this.statusBarData.change({ requestQueue: value.requestQueue + inc });
     }
 
     analyticsRequest(queue: number, current: number) {
-        this.statusBarData.requestQueue += queue;
-        this.statusBarData.requestCurrent += current;
-        this.broadcast(WsCommand.StatusBar, {
-            requestQueue: this.statusBarData.requestQueue,
-            requestCurrent: this.statusBarData.requestCurrent
+        const value = this.statusBarData.value;
+        this.statusBarData.change({
+            ...value,
+            requestQueue: value.requestQueue + queue,
+            requestCurrent: value.requestCurrent + current
         })
     }
 
     analyticsBandwidth(inc: number) {
-        this.statusBarData.bandwidth += inc;
+        const value =  this.statusBarData.value;
         this.speedTotal += inc;
-        this.broadcast(WsCommand.StatusBar, {
-            bandwidth: this.statusBarData.bandwidth
-        })
+        this.statusBarData.change({ ...value, bandwidth: value.bandwidth + inc })
     }
 
     handle(request: PPIncomingMessage, ws: PPWebsocket): MayBePromise<void> {
@@ -95,7 +91,7 @@ export class PmsServerAnalytics extends PPWsHandler {
 
     private onOpen(ws: PPWebsocket, id: number) {
         this.sockets.insert(id, ws);
-        this.broadcast(WsCommand.StatusBar, this.statusBarData);
+        this.broadcast(WsCommand.StatusBar, this.statusBarData.value);
     }
 
     private onData(ws: PPWebsocket, data: PPWebsocketRawData, id: number) {

@@ -5,7 +5,7 @@ import {configs} from "./config";
 import {log} from "@cores/logger";
 import {PPServerProxy} from "pms-proxy";
 import {PmsUiInjectModule} from "@analytics/ui";
-import {PmsServerAnalytics} from "@analytics/server";
+import {PmsServerAnalytics} from "@analytics/index";
 
 // google-chrome --proxy-server=localhost:$PORT --ignore-certificate-errors-spki-list=$CERT_FINGERPRINT --user-data-dir=$ANY_PATH
 // const caFingerprint = mockttp.generateSPKIFingerprint(https.cert)

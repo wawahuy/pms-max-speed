@@ -3,7 +3,7 @@ import fetch, { Response, RequestInfo, RequestInit } from "node-fetch";
 import AbortControllerLib from "abort-controller";
 import {BehaviorSubject, Observable, Subject} from 'rxjs';
 import {IncomingHttpHeaders} from "http";
-import {PmsServerAnalytics} from "@analytics/server";
+import {PmsServerAnalytics} from "@analytics/index";
 
 const AbortController = globalThis.AbortController || AbortControllerLib;
 
