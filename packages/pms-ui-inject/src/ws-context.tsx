@@ -80,7 +80,6 @@ export const WsContextProvider: React.FC<WsContextProviderProps> = ({ children }
         }
         ws.onerror = () => {
             setValue(prev => ({...prev, status: WsStatus.closed}));
-            setTimeout(() => connectWs(wsUrl), 2000);
         }
 
         setValue(prev => ({...prev, ws}));
@@ -92,7 +91,7 @@ export const WsContextProvider: React.FC<WsContextProviderProps> = ({ children }
         connectWs(wsUrl);
 
         return () => {
-            if (value.ws) {
+            if (value.ws && value.ws.readyState !== WebSocket.CLOSED) {
                 value.ws.close();
             }
         }
