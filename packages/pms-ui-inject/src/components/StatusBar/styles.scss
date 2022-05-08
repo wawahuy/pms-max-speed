@@ -1,5 +1,33 @@
 .statusBar {
-  .test {
-    color: red;
+  position: fixed;
+  top: 20px;
+  left: 5px;
+  z-index: 99999999;
+  font-size: 8px;
+  color: #fff;
+  padding: 12px;
+
+  .containerBadge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .badge {
+      display: flex;
+      align-items: center;
+      padding: 2px;
+      border: 1px solid #fff;
+      border-radius: 3px;
+      margin-right: 3px;
+
+      .title {
+        font-weight: bold;
+        margin-right: 2px;
+      }
+      .description {
+      }
+    }
   }
+
+
 }
