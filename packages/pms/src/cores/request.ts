@@ -3,6 +3,7 @@ import fetch, { Response, RequestInfo, RequestInit } from "node-fetch";
 import AbortControllerLib from "abort-controller";
 import {BehaviorSubject, Observable, Subject} from 'rxjs';
 import {IncomingHttpHeaders} from "http";
+import {PmsServerAnalytics} from "@analytics/server";
 
 const AbortController = globalThis.AbortController || AbortControllerLib;
 
@@ -40,18 +41,27 @@ export class PmsRequest {
             ...this.requestInit
         }
         return new Promise<this>(async (resolve, reject) => {
+            const analytics = PmsServerAnalytics.instance;
             const mutex = PmsRequest.mutex;
             try {
+                analytics.analyticsRequestQueue(1);
                 await mutex.acquire();
+
+                analytics.analyticsRequest(-1, 1)
                 if (this.isCanceled) {
                     this.isCanceled = false;
                     throw 'AbortError';
                 }
 
                 const response = await fetch(this.requestInfo, this.requestInit);
+                response.body.on('data', (chunk) => {
+                    analytics.analyticsBandwidth(chunk?.length || 0)
+                })
                 response.body.once('error', (err) => {
                     this.isDone = true;
                     mutex.release();
+                    analytics.analyticsRequestCurrent(-1);
+
                     console.log('what????', err);
                     if (err.name !== 'AbortError') {
                         console.log(err);
@@ -61,12 +71,14 @@ export class PmsRequest {
                 response.body.once('close', () => {
                     this.isDone = true;
                     mutex.release();
+                    analytics.analyticsRequestCurrent(-1);
                 })
                 this.responseSubject.next(response);
                 resolve(this);
             } catch (e) {
                 console.log('what??', e)
                 mutex.release();
+                analytics.analyticsRequestCurrent(-1);
                 this.retry();
                 reject(e);
             }

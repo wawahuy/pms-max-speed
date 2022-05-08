@@ -35,7 +35,7 @@ export class PmsBufferTree {
     }
 
     insertBuffer(range: PmsBufferRange, buffer: Buffer) {
-        console.log('insert', range);
+        // console.log('insert', range);
         const node: PmsBufferNode = { ...range, buffer };
         return this.insertOrReplaceNode(node);
     }

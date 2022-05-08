@@ -4,7 +4,8 @@ import {PmsOkRuModule} from "@modules/ok-ru";
 import {configs} from "./config";
 import {log} from "@cores/logger";
 import {PPServerProxy} from "pms-proxy";
-import {PmsUiInjectModule} from "@modules/ui-inject";
+import {PmsUiInjectModule} from "@analytics/ui";
+import {PmsServerAnalytics} from "@analytics/server";
 
 // google-chrome --proxy-server=localhost:$PORT --ignore-certificate-errors-spki-list=$CERT_FINGERPRINT --user-data-dir=$ANY_PATH
 // const caFingerprint = mockttp.generateSPKIFingerprint(https.cert)
@@ -25,6 +26,15 @@ import {PmsUiInjectModule} from "@modules/ui-inject";
     modules.map(moduleClazz => {
         return server.addRule(moduleClazz.rule()).then(PmsModule.create(moduleClazz));
     })
+
+    /**
+     * Analytics accept all connect from path: /websocket-pms/success
+     *
+     */
+    server.getWebsocket()
+        .addRule()
+        .url(PmsServerAnalytics.mathHost)
+        .then(PmsServerAnalytics.instance);
 
     await server.listen(configs.proxyPort);
 

@@ -25,7 +25,8 @@
     "baseUrl": "./src",
     "paths": {
       "@cores/*": ["cores/*"],
-      "@modules/*": ["modules/*"]
+      "@modules/*": ["modules/*"],
+      "@analytics/*": ["analytics/*"]
     }
   },
   "ts-node": {
