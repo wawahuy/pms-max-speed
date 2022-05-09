@@ -42,9 +42,6 @@ export class PmsOkRuCached extends PmsCached  {
                 this.headerContentLength = Number(header['content-range']?.split('/')?.[1]?.trim() || 0);
             }
         }).catch(err => {
-            if (err.name !== 'AbortError' && err !== 'AbortError') {
-                console.log(err);
-            }
         })
         return request;
     }
