@@ -63,6 +63,17 @@ const config = {
 module.exports = () => {
     if (isProduction) {
         config.mode = 'production';
+        config.optimization = {
+            minimizer: [
+                (compiler) => ({
+                    terserOptions: {
+                        mangle: false,
+                        keep_classnames: /AbortSignal/,
+                        keep_fnames: /AbortSignal/
+                    }
+                })
+            ]
+        };
         config.plugins.push(new BundleAnalyzerPlugin());
     } else {
         config.mode = 'development';

@@ -1,24 +1,56 @@
+const IS_ANDROID = process.argv.some(arg => arg === '--android') ? 'true' : undefined;
+
+import * as fs from "fs";
 import path from 'path';
+import child_process from 'child_process';
 import {PmsModule} from "@cores/module";
 import {PmsOkRuModule} from "@modules/ok-ru";
 import {configs} from "./config";
 import {log} from "@cores/logger";
-import {PPServerProxy} from "pms-proxy";
+import {PPCa, PPCaFileOptions, PPCaOptions, PPServerProxy} from "pms-proxy";
 import {PmsUiInjectModule} from "@analytics/ui";
 import {PmsServerAnalytics} from "@analytics/index";
-import {PmsRequest} from "@cores/request";
-import {response} from "express";
 
-// google-chrome --proxy-server=localhost:$PORT --ignore-certificate-errors-spki-list=$CERT_FINGERPRINT --user-data-dir=$ANY_PATH
-// const caFingerprint = mockttp.generateSPKIFingerprint(https.cert)
+async function getHttpsOption() {
+    let https: PPCaOptions = <any>{};
 
-
-(async () => {
-    const server = new PPServerProxy({
-        https: {
+    if ( process.env.NODE_ENV == 'production') {
+        if (IS_ANDROID) {
+            // for Android
+            const caPath = path.join(configs.rootAppDir, 'ca');
+            https = {
+                keyPath: caPath + '.key',
+                certPath: caPath + '.cert'
+            }
+            if (!fs.existsSync(https.keyPath) || !fs.existsSync(https.certPath) ) {
+                const n = await PPCa.generateCACertificate();
+                fs.writeFileSync(https.keyPath, n.key);
+                fs.writeFileSync(https.certPath, n.cert);
+                // android emit new CA
+                /**
+                 *
+                 *
+                 */
+            }
+        } else {
+            // for Windows
+            https = await PPCa.generateCACertificate();
+        }
+    } else {
+        https = {
             keyPath: path.join(__dirname, '../certs/rootCA.key'),
             certPath: path.join(__dirname, '../certs/rootCA.pem'),
         }
+    }
+
+    return https;
+}
+
+(async () => {
+    const https: PPCaOptions = await getHttpsOption();
+
+    const server = new PPServerProxy({
+        https
     })
 
     const modules = [
@@ -40,6 +72,24 @@ import {response} from "express";
         .then(PmsServerAnalytics.instance);
 
     await server.listen(configs.proxyPort);
+
+    if (process.env.NODE_ENV == 'production') {
+        if (!IS_ANDROID) {
+            // for Window's
+            // start with Proxy and CA
+            const spki = PPCa.generateSPKIFingerprint((<PPCaFileOptions>https).cert);
+            const userData = path.join(configs.rootAppDir, '/data/chrome');
+            log.info('Chrome Data: ' + userData);
+            log.info('SPKI: ' + spki);
+            log.info(`Run: start chrome --proxy-server="http://127.0.0.1:${configs.proxyPort}" --ignore-certificate-errors-spki-list=${spki} --user-data-dir=\"${userData}\"`)
+            const proc = child_process.exec(
+                `start chrome --proxy-server="http://127.0.0.1:${configs.proxyPort}" --ignore-certificate-errors-spki-list=\"${spki}\" --user-data-dir=\"${userData}\"`
+            );
+            process.on('exit', () => {
+                proc.kill();
+            })
+        }
+    }
 
     log.info(`Server proxy running on port ${configs.proxyPort}`);
 })();
