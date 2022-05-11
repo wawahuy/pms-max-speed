@@ -18,9 +18,7 @@
   },
   "author": "",
   "license": "ISC",
-  "dependencies": {
-    "pms": "file:../pms"
-  },
+  "dependencies": {},
   "devDependencies": {
     "pkg": "^5.6.0"
   }
