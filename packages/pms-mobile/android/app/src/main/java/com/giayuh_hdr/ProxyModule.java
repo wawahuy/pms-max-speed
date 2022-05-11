@@ -40,7 +40,6 @@ public class ProxyModule extends ReactContextBaseJavaModule implements Lifecycle
     private Tun2HttpVpnService service;
     private String host;
     private int port;
-    private String pkg;
     private boolean isRunningOld = false;
 
     Handler statusHandler;
@@ -93,10 +92,9 @@ public class ProxyModule extends ReactContextBaseJavaModule implements Lifecycle
     }
 
     @ReactMethod
-    private void startVpn(String host, int port, String pkg) {
+    private void startVpn(String host, int port) {
         this.host = host;
         this.port = port;
-        this.pkg = pkg;
         Intent i = VpnService.prepare(this.reactContext);
         if (i != null) {
             this.reactContext.startActivityForResult(i, REQUEST_VPN, null);
@@ -141,7 +139,7 @@ public class ProxyModule extends ReactContextBaseJavaModule implements Lifecycle
         }
         if (requestCode == REQUEST_VPN) {
             loadHostPort();
-            loadFilterPackage();
+//             loadFilterPackage();
             updateStatus();
             Tun2HttpVpnService.start(reactContext);
         }
@@ -162,7 +160,7 @@ public class ProxyModule extends ReactContextBaseJavaModule implements Lifecycle
     private void loadFilterPackage() {
         MainApplication.getInstance().storeVPNMode(MainApplication.VPNMode.ALLOW);
         Set<String> list = new HashSet<String>();
-        list.add(pkg);
+//         list.add(pkg);
         MainApplication.getInstance().storeVPNApplication(MainApplication.VPNMode.ALLOW, list);
     }
 

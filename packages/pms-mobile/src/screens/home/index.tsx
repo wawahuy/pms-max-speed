@@ -8,7 +8,6 @@ import ButtonConnect, {
 } from '../../components/button_connect';
 import {addEventListener, startVpn, stopVpn} from '../../modules/proxy_module';
 import {configs} from '../../configs/env';
-import HomeService from '../../services/home';
 
 const messages = {
   [ButtonConnectStatus.START]: 'Đã kết nối!',
@@ -36,26 +35,17 @@ export default function Home() {
     if (status === ButtonConnectStatus.STOP) {
       setStatus(ButtonConnectStatus.CONNECTING);
       try {
-        const homeService = new HomeService();
-        const [data] = await Promise.all([
-          homeService.getProxy(),
-          new Promise(res => setTimeout(res, 500)),
-        ]);
-        if (data && data.ip && data.port && data.package) {
-          startVpn(data.ip, data.port, data.package);
-          setStatus(ButtonConnectStatus.START);
-          showMessage({
-            message: 'Kết nối thành công',
-            type: 'info',
-            autoHide: true,
-          });
-        } else {
-          throw data.msg || 'Lôi kết nối';
-        }
+        startVpn('localhost', configs.PORT_PROXY);
+        setStatus(ButtonConnectStatus.START);
+        showMessage({
+          message: 'Kết nối thành công',
+          type: 'info',
+          autoHide: true,
+        });
       } catch (e) {
         setStatus(ButtonConnectStatus.STOP);
         showMessage({
-          message: e?.toString(),
+          message: (e as any)?.toString(),
           type: 'danger',
           autoHide: true,
         });
@@ -88,7 +78,7 @@ export default function Home() {
       <View style={styles.circle} />
       <View style={styles.containerConnect}>
         <View style={styles.containerTop}>
-          <Title style={styles.titleLogo}>HEO ĐẾN RỒI</Title>
+          <Title style={styles.titleLogo}>PMS</Title>
           <ButtonConnect
             status={status}
             onPress={onChangeStatus}
@@ -97,7 +87,7 @@ export default function Home() {
           <Text style={styles.status}>{messages[status]}</Text>
         </View>
         <Text style={styles.modBy} onPress={onClickAuthor}>
-          Mod © GiaYuh
+          PMS © Wawahuy
         </Text>
       </View>
     </>

@@ -3,8 +3,8 @@ import {NativeModules, NativeEventEmitter} from 'react-native';
 const module = NativeModules.ProxyModule;
 const eventEmitter = new NativeEventEmitter(module);
 
-function startVpn(ip: string, port: number, pkg: string) {
-  return module.startVpn(ip, port, pkg);
+function startVpn(ip: string, port: number) {
+  return module.startVpn(ip, port);
 }
 
 function stopVpn() {
