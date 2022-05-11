@@ -125,7 +125,7 @@ export default class Request {
 			: null;
 		if ('signal' in init) signal = init.signal
 
-		if (signal != null && !isAbortSignal(signal)) {
+		if (signal != null) {
 			throw new TypeError('Expected signal to be an instanceof AbortSignal');
 		}
 
