@@ -6,8 +6,8 @@
   "scripts": {
     "test": "jest",
     "test:watch": "jest --watch",
-    "build:dev": "webpack --mode=development",
-    "build:prod": "webpack --mode=production --node-env=production",
+    "build:win32": "webpack --mode=production --node-env=production --env type=\"win32\"",
+    "build:android": "webpack --mode=production --node-env=production --env type=\"android\"",
     "watch": "webpack --watch",
     "start:prod": "node dist/main.js"
   },

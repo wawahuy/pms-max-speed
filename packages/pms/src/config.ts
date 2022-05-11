@@ -1,9 +1,12 @@
 const getRootAppDir = () => {
     if (process.env.NODE_ENV == 'production') {
-        if (process.env.IS_ANDROID) {
+        if (process.env.type == 'android') {
             return __dirname
+        } else if(process.env.type == 'win32') {
+            return process.cwd();
+        } else {
+            throw 'Not support system ' + process.env.type;
         }
-        return process.cwd();
     } else {
         return __dirname;
     }

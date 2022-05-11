@@ -1,6 +1,7 @@
 // Generated using webpack-cli https://github.com/webpack/webpack-cli
 
 const path = require('path');
+const webpack = require('webpack');
 const nodeExternals = require('webpack-node-externals');
 const NodemonPlugin = require('nodemon-webpack-plugin');
 const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -13,6 +14,9 @@ const externals = () => {
     const devLibs = [
         'bufferutil',
         'utf-8-validate',
+        {
+            'rn-bridge': 'require(\'rn-bridge\')'
+        }
     ];
     const externalLibs = [
     ];
@@ -60,9 +64,15 @@ const config = {
     },
 };
 
-module.exports = () => {
+module.exports = (env) => {
     if (isProduction) {
         config.mode = 'production';
+        config.output.filename = `${env.type}.js`;
+        config.plugins.push(
+            new webpack.DefinePlugin({
+                'process.env.type': JSON.stringify(env.type)
+            }),
+        )
         config.optimization = {
             minimizer: [
                 (compiler) => ({
@@ -74,7 +84,7 @@ module.exports = () => {
                 })
             ]
         };
-        config.plugins.push(new BundleAnalyzerPlugin());
+        // config.plugins.push(new BundleAnalyzerPlugin());
     } else {
         config.mode = 'development';
     }

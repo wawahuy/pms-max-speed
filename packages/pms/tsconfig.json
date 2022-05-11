@@ -19,7 +19,7 @@
     "preserveSymlinks": true,
     "strictPropertyInitialization": false,
     "typeRoots": [
-      "./src/types",
+      "./src/@types",
       "./node_modules/@types"
     ],
     "baseUrl": "./src",
