@@ -5,9 +5,11 @@ import {PmsModule} from "@cores/module";
 import {PmsOkRuModule} from "@modules/ok-ru";
 import {configs} from "./config";
 import {log} from "@cores/logger";
-import {PPCa, PPCaFileOptions, PPCaOptions, PPServerProxy} from "pms-proxy";
+import {PPCa, PPCaFileOptions, PPCaOptions, PPPassThroughHttpHandler, PPServerProxy} from "pms-proxy";
 import {PmsUiInjectModule} from "@analytics/ui";
 import {PmsServerAnalytics} from "@analytics/index";
+import {PmsRequest} from "@cores/request";
+import {PmsMotChillModule} from "@modules/motchill";
 
 async function getHttpsOption() {
     let https: PPCaOptions = <any>{};
@@ -55,6 +57,7 @@ async function getHttpsOption() {
     const modules = [
         PmsUiInjectModule,
         PmsOkRuModule,
+        // PmsMotChillModule,
     ]
 
     modules.map(moduleClazz => {
@@ -62,13 +65,27 @@ async function getHttpsOption() {
     })
 
     /**
-     * Analytics accept all connect from path: /websocket-pms/success
+     * Analytics socket
      *
      */
     server.getWebsocket()
         .addRule()
         .url(PmsServerAnalytics.mathHost)
         .then(PmsServerAnalytics.instance);
+
+    /**
+     * Zone test
+     *
+     */
+    server.addRule().any().then(async (req, res) => {
+        const p = new PPPassThroughHttpHandler(false);
+        p.injectBuffer((r, b) => {
+            return {
+                data: b,
+            }
+        })
+        await p.handle(req, res);
+    })
 
     await server.listen(configs.proxyPort);
 
@@ -80,7 +97,7 @@ async function getHttpsOption() {
             const userData = path.join(configs.rootAppDir, '/data/chrome');
             log.info('Chrome Data: ' + userData);
             log.info('SPKI: ' + spki);
-            log.info(`Run: start chrome --proxy-server="http://127.0.0.1:${configs.proxyPort}" --ignore-certificate-errors-spki-list=${spki} --user-data-dir=\"${userData}\"`)
+            log.info(`Run: start chrome --proxy-server="http://127.0.0.1:${configs.proxyPort}" --ignore-certificate-errors-spki-list=\"${spki}\" --user-data-dir=\"${userData}\"`)
             const proc = child_process.exec(
                 `start chrome --proxy-server="http://127.0.0.1:${configs.proxyPort}" --ignore-certificate-errors-spki-list=\"${spki}\" --user-data-dir=\"${userData}\"`
             );

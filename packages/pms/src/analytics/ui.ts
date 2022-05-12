@@ -8,7 +8,8 @@ export class PmsUiInjectModule extends PmsModule {
     static rule() {
         const r = new PPHttpRule();
         r.url([
-            /^https\:\/\/www\.ok\.ru\/videoembed\//gmi
+            /^https\:\/\/(www\.)?ok\.ru\/videoembed\//gmi,
+            /^https\:\/\/(www\.)?motchill.net\/player\//gmi,
         ]);
         return r;
     }
