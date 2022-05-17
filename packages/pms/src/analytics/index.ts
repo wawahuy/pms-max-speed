@@ -59,7 +59,6 @@ export class PmsServerAnalytics extends PPWsHandler {
     analyticsRequest(queue: number, current: number) {
         const value = this.statusBarData.value;
         this.statusBarData.change({
-            ...value,
             requestQueue: value.requestQueue + queue,
             requestCurrent: value.requestCurrent + current
         })
@@ -68,7 +67,7 @@ export class PmsServerAnalytics extends PPWsHandler {
     analyticsBandwidth(inc: number) {
         const value =  this.statusBarData.value;
         this.speedTotal += inc;
-        this.statusBarData.change({ ...value, bandwidth: value.bandwidth + inc })
+        this.statusBarData.change({ bandwidth: value.bandwidth + inc })
     }
 
     handle(request: PPIncomingMessage, ws: PPWebsocket): MayBePromise<void> {
@@ -76,7 +75,7 @@ export class PmsServerAnalytics extends PPWsHandler {
         log.info(`ws connect at ${request.hostname}, id=${id}`);
 
         this.onOpen(ws, id);
-        ws.on("message", (data) => this.onData(ws, data, id));
+        ws.on("message", (data: PPWebsocketRawData) => this.onData(ws, data, id));
         ws.on("close", () => this.onClose(ws, id));
         ws.on("error", () => this.onClose(ws, id));
     }

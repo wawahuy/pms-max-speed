@@ -15,3 +15,7 @@ export type PmsBufferNode = PmsBufferRange & {
 }
 
 export type PmsBufferCallback = (buffer: Buffer, range: PmsBufferRange) => void;
+
+export const PromiseNoError = (p: Promise<any>): void => {
+    p.then(() => {}).catch(() => {});
+}

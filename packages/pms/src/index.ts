@@ -10,6 +10,8 @@ import {PmsUiInjectModule} from "@analytics/ui";
 import {PmsServerAnalytics} from "@analytics/index";
 import {PmsRequest} from "@cores/request";
 import {PmsMotChillModule} from "@modules/motchill";
+import AVLTree from "avl";
+import {timer} from "@cores/helpers";
 
 async function getHttpsOption() {
     let https: PPCaOptions = <any>{};
@@ -74,16 +76,57 @@ async function getHttpsOption() {
         .then(PmsServerAnalytics.instance);
 
     /**
+     * Zone test ads block
+     *
+     *
+     */
+    // const adsTree = new AVLTree<string, undefined>();
+    //
+    // const adsUrl1 = 'https://raw.githubusercontent.com/jerryn70/GoodbyeAds/master/Hosts/GoodbyeAds.txt';
+    // const adsResponse1 = await (new PmsRequest(adsUrl1).init().then((r) => {
+    //     return r.getResponse();
+    // }))
+    // const text1 = await adsResponse1?.text() || '';
+    // const adsSp1 = text1.split("\n")
+    // adsSp1.forEach(item => {
+    //     const s = item.split(" ");
+    //     if (s.length == 2) {
+    //         adsTree.insert(s[1]);
+    //     }
+    // })
+    //
+    // const adsUrl2 = 'https://raw.githubusercontent.com/pantsufan/BlockAds/main/hosts';
+    // const adsResponse2 = await (new PmsRequest(adsUrl2).init().then((r) => {
+    //     return r.getResponse();
+    // }))
+    // const text2 = await adsResponse2?.text() || '';
+    // const adsSp2 = text2.split("\n")
+    // adsSp2.forEach(item => {
+    //     const s = item.split(" ");
+    //     if (s.length == 2) {
+    //         adsTree.insert(s[1]);
+    //     }
+    // })
+
+    // console.log('init ads tree, size=', adsTree.size);
+
+    /**
      * Zone test
      *
      */
     server.addRule().any().then(async (req, res) => {
+        // const t = timer('block ads');
+        // if (adsTree.find(req.hostname)) {
+        //     t();
+        //     res.destroy();
+        //     return;
+        // }
         const p = new PPPassThroughHttpHandler(false);
-        p.injectBuffer((r, b) => {
-            return {
-                data: b,
-            }
-        })
+        // p.injectBuffer((r, b) => {
+        //     return {
+        //         data: b,
+        //     }
+        // })
         await p.handle(req, res);
     })
 

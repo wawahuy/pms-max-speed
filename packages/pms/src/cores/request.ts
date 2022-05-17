@@ -1,10 +1,11 @@
+import {Readable} from "stream";
 import {PmsParallelMutex} from "@cores/parallel-mutex";
 import fetch, { Response, RequestInfo, RequestInit } from "node-fetch";
 import AbortControllerLib from "abort-controller";
-import {BehaviorSubject, Observable, Subject} from 'rxjs';
-import {IncomingHttpHeaders} from "http";
 import {PmsServerAnalytics} from "@analytics/index";
 import {log} from "@cores/logger";
+import {IncomingHttpHeaders} from "http";
+import {PromiseNoError} from "@cores/types";
 
 const AbortController = globalThis.AbortController || AbortControllerLib;
 
@@ -13,153 +14,121 @@ export type PmsRequestInit = RequestInit & {
     retry?: number
 };
 
+export declare interface PmsRequest {
+    on(event: 'created', listener: () => void): this;
+    once(event: 'created', listener: () => void): this;
+    on(event: string, listener: Function): this;
+    once(event: string, listener: Function): this;
+}
 
-export class PmsRequest {
+export class PmsRequest extends Readable {
     private static readonly maxRequest: number = 30;
     public static readonly mutex: PmsParallelMutex = new PmsParallelMutex(PmsRequest.maxRequest);
-
-    private readonly timeout: number = 0;
-    private timeoutId: NodeJS.Timeout;
-    private isDone: boolean = false;
-    private isCanceled: boolean = false;
-    private isTimeout: boolean = false;
-    private retryCounter: number = 0;
+    private response: Response;
     private abortController: AbortController;
-
-    private responseSubject: BehaviorSubject<Response | null>;
-    public readonly response$: Observable<Response | null>;
-
-    get isAbort() {
-        return this.isCanceled;
-    }
+    private retryCounter: number = 0;
+    private testOld: number = 0;
+    private testCurrent: number = 0;
 
     constructor(
         private requestInfo: PmsRequestOption,
         private requestInit?: PmsRequestInit
     ) {
-        this.responseSubject = new BehaviorSubject<Response | null>(null);
-        this.response$ = this.responseSubject.asObservable();
-
-        if (this.requestInit?.timeout) {
-            this.timeout = this.requestInit.timeout;
-            delete this.requestInit.timeout;
-        }
+        super();
+        this.init();
     }
 
-    init() {
-        this.isDone = false;
+    private init() {
+        PromiseNoError(this.createResponse());
+    }
+
+    private async createResponse() {
+        this.testOld = this.testCurrent;
+        this.testCurrent = 0;
         this.abortController = new AbortController();
         this.requestInit = {
             ...this.requestInit,
             signal: this.abortController.signal
         }
-        return new Promise<this>(async (resolve, reject) => {
-            const analytics = PmsServerAnalytics.instance;
-            const mutex = PmsRequest.mutex;
-            try {
-                analytics.analyticsRequestQueue(1);
-                await mutex.acquire();
 
-                analytics.analyticsRequest(-1, 1)
-                if (this.isCanceled) {
-                    this.isCanceled = false;
-                    throw 'AbortError';
-                }
+        const analytics = PmsServerAnalytics.instance;
+        const mutex = PmsRequest.mutex;
+        try {
+            analytics.analyticsRequestQueue(1);
+            await mutex.acquire();
+            analytics.analyticsRequest(-1, 1)
 
-                this.registerTimeout();
-                const response = await fetch(this.requestInfo, this.requestInit);
-                response.body.on('data', (chunk) => {
-                    analytics.analyticsBandwidth(chunk?.length || 0)
-                })
-                response.body.once('error', (err) => {
-                    if (this.timeoutId) {
-                        clearTimeout(this.timeoutId);
-                    }
-                    this.isDone = true;
-                    mutex.release();
-                    analytics.analyticsRequestCurrent(-1);
+            const response = await fetch(this.requestInfo, this.requestInit);
+            response.body.on('data', (chunk) => {
+                if (this.testOld) {
+                    throw "Retry overlap data"
+                }
+                this.testCurrent +=  chunk;
 
-                    if (!this.isCanceled && !this.isTimeout) {
-                        log.info(err);
-                    }
-                    this.retry();
-                })
-                response.body.once('close', () => {
-                    if (this.timeoutId) {
-                        clearTimeout(this.timeoutId);
-                    }
-                    this.isDone = true;
-                    mutex.release();
-                    analytics.analyticsRequestCurrent(-1);
-                })
-                this.responseSubject.next(response);
-                resolve(this);
-            } catch (e) {
-                if (!this.isCanceled && !this.isTimeout) {
-                    log.info(e);
-                }
-                if (this.timeoutId) {
-                    clearTimeout(this.timeoutId);
-                }
+                this.push(chunk)
+                analytics.analyticsBandwidth(chunk?.length || 0)
+            })
+            response.body.once('error', (err) => {
                 mutex.release();
                 analytics.analyticsRequestCurrent(-1);
-                this.retry();
-                reject(e);
-            }
-        })
-    }
-
-    private retry() {
-        const r = this.requestInit?.retry || 0;
-        if (!this.isCanceled && this.retryCounter++ < r) {
-            log.info(`Request retry ${this.requestInfo}`);
-            setTimeout(() => {
-                this.init().catch(err => {
-                });
+                this.retry(err);
             })
+            response.body.once('close', () => {
+                mutex.release();
+                analytics.analyticsRequestCurrent(-1);
+                this.push(null);
+            })
+            this.response = response;
+            this.emit('created');
+        } catch (e) {
+            mutex.release();
+            analytics.analyticsRequestCurrent(-1);
+            this.retry(e as Error);
         }
     }
 
-    private registerTimeout() {
-        if (!this.timeout) {
-            return;
+    private retry(e: Error) {
+        log.error(e);
+        if (e.name !== 'AbortError') {
+            if (this.retryCounter++ < (this.requestInit?.retry || 0)) {
+                log.info(`Request retry ${this.requestInfo}`);
+                this.init();
+                return;
+            }
         }
-
-        if (this.timeoutId) {
-            clearTimeout(this.timeoutId);
-        }
-
-        this.isTimeout = true;
-        this.timeoutId = setTimeout(() => {
-            log.info(`Request timeout ${this.requestInfo}`);
-            this.abortController.abort();
-        }, this.timeout);
+        this.destroy(e);
     }
 
-    abort() {
-        this.isCanceled = true;
-        if (!this.isDone && this.abortController) {
-            this.abortController.abort();
+    _read(size: number) {
+    }
+
+    _destroy(error: Error | null, callback: (error?: (Error | null)) => void) {
+        super._destroy(error, callback);
+    }
+
+    async buffer() {
+        const buffer: Buffer[] = [];
+        for await (const b of this) {
+          buffer.push(b);
         }
+        return Buffer.concat(buffer);
     }
 
     getHeaders() {
-        const response = this.responseSubject.value;
+        const response = this.response;
         if (!response) {
             return null;
         }
 
         const headers: IncomingHttpHeaders = {};
-
         const h = response.headers.raw();
         Object.keys(h).forEach(key => {
             headers[key] = h[key]?.join("; ");
         })
-
         return headers;
     }
 
-    getResponse() {
-        return this.responseSubject.value;
+    abort() {
+        this.abortController.abort();
     }
 }

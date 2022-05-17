@@ -19,18 +19,15 @@ export class PmsBufferTree {
 
     insertWaiter(range: PmsBufferRange, waiter: PmsRequest) {
         const node: PmsBufferNode = { ...range, waiter };
-        waiter.response$.subscribe(response => {
-            if (!response) return;
-            response.buffer()
-                .then(buffer => {
-                    this.insertBuffer(range, buffer);
-                })
-                .catch(err => {
-                    console.log(err);
-                    console.log('failed load', range);
-                    this.removeBuffer(range);
-                })
-        })
+        waiter.buffer()
+            .then(buffer => {
+                this.insertBuffer(range, buffer);
+            })
+            .catch(err => {
+                console.log(err);
+                console.log('failed load', range);
+                this.removeBuffer(range);
+            })
         return this.insertOrReplaceNode(node);
     }
 

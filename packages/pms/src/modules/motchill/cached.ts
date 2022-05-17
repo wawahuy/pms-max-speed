@@ -32,13 +32,12 @@ export class PmsMotChillCached extends PmsCached  {
             retry: 3
         }
         const request = new PmsRequest(this.request.url, option);
-        request.init().then(r => {
+        request.once('created', () => {
             const header = request.getHeaders();
             if (header) {
                 this.headerLasted = header;
                 this.headerContentLength = Number(header['content-range']?.split('/')?.[1]?.trim() || 0);
             }
-        }).catch(err => {
         })
         return request;
     }
