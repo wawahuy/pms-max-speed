@@ -3,6 +3,7 @@ import AVLTree, {Node} from "avl";
 import {PmsBufferCallback, PmsBufferNode, PmsBufferRange} from "@cores/types";
 import {Readable} from "stream";
 import {PmsFilterOffsetStream, PmsConcatStream} from "@cores/custom-stream";
+import {log} from "@cores/logger";
 
 export class PmsBufferTree {
     private avlGetCallback: AvlKeyDuplicate<string, PmsBufferCallback>;
@@ -19,6 +20,11 @@ export class PmsBufferTree {
 
     insertStream(range: PmsBufferRange, stream: Readable) {
         const node: PmsBufferNode = { ...range, stream };
+        stream.once('error', (err) => {
+            log.info('insertStream');
+            log.info(err);
+            this.remove(range);
+        })
         return this.insertOrReplaceNode(node);
     }
 
@@ -57,6 +63,7 @@ export class PmsBufferTree {
         const key = range.start + '_' + range.end;
         const stream = this.get(range);
         if (stream) {
+            this.remove(range);
             callback(stream, {...range});
             return;
         }
@@ -135,8 +142,12 @@ export class PmsBufferTree {
 
         const concatStream = new PmsConcatStream(...streams);
         const start = range.start - nodes[0].start;
-        const len = range.end - range.start;
+        const len = range.end - range.start + 1;
         const result = concatStream.pipe(new PmsFilterOffsetStream({ start, len }));
+        concatStream.once('error', err => {
+            log.info('get');
+            result.destroy(err)
+        })
         return result;
     }
 
@@ -166,7 +177,7 @@ export class PmsBufferTree {
             const stream = this.get({ start, end });
 
             if (stream) {
-                this.remove({start, end})
+                this.remove({ start, end })
                 if (node.key) {
                     removeKeys.push(node.key);
                 }

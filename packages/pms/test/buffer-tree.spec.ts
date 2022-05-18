@@ -1,10 +1,12 @@
 import {PmsBufferTree} from "../src/cores/buffer-tree";
+import {Readable} from "stream";
 
 describe('Buffer Tree Tests', () => {
-    // const bufferTree = new PmsBufferTree();
-    // const buffer = Buffer.of(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
+    const bufferTree = new PmsBufferTree();
 
-    it('test', () => {
-        expect(1).toEqual(1)
+    it('insert & remove', () => {
+        bufferTree.insertStream({ start: 0, end: 432 }, Readable.from(""));
+        bufferTree.remove({ start: 0, end: 432 });
+        expect(bufferTree.has({ start: 0, end: 432 })).toEqual(false)
     })
 })

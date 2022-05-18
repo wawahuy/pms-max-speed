@@ -3,6 +3,8 @@ import {PmsModule} from "@cores/module";
 import {PmsBufferRange} from "@cores/types";
 import {PmsOkRuCachedManager} from "@modules/ok-ru/cached-manager";
 import {PPHttpRule} from "pms-proxy";
+import {log} from "@cores/logger";
+import {response} from "express";
 
 export class PmsOkRuModule extends PmsModule {
     url: Url.UrlWithParsedQuery;
@@ -49,6 +51,12 @@ export class PmsOkRuModule extends PmsModule {
                 console.log('---------res-----------')
                 console.log(range, this.id);
                 console.log(this.request.url);
+                stream.once('error', (err) => {
+                    log.info('ok.ru init')
+                    log.info(err);
+                    this.response.status(500).send();
+                })
+
                 await cached.getHeaderWaiter();
                 const headers = cached.getHeaderLasted();
                 if (headers['content-range']) {
