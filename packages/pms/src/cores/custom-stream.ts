@@ -1,4 +1,5 @@
 import {Duplex, PassThrough, Readable} from "stream";
+import * as Buffer from "buffer";
 
 
 export class PmsConcatStream extends PassThrough {
@@ -29,15 +30,38 @@ export class PmsConcatStream extends PassThrough {
 }
 
 export class PmsFilterOffsetStream extends Duplex {
+    private offsetCurrent = 0;
 
-    constructor(private options: { start?: number; len?: number }) {
+    constructor(private readonly options?: { start?: number; len?: number }) {
         super();
     }
 
     _read(size?: number) {}
 
-    _write(chunk: any, encoding: BufferEncoding, callback: () => void) {
-        this.push(chunk);
+    _write(chunk: Buffer, encoding: BufferEncoding, callback: () => void) {
+        const sizeChunk = chunk.length;
+        const offsetStart = this.options?.start || 0;
+
+        let s = 0;
+        let e;
+
+        const offsetPrev = this.offsetCurrent;
+        this.offsetCurrent += sizeChunk;
+        if (offsetPrev <= offsetStart) {
+            if (this.offsetCurrent >= offsetStart) {
+                s = offsetStart - offsetPrev;
+            }
+        }
+
+        if (this.options?.len) {
+            const len = this.options?.len;
+            const maxEnd = offsetStart + len -  1;
+            if (this.offsetCurrent > maxEnd) {
+                e = sizeChunk - (this.offsetCurrent - maxEnd) + 1;
+            }
+        }
+
+        this.push(chunk.slice(s, e))
         callback();
     }
 
