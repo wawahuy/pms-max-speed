@@ -1,4 +1,4 @@
-import {PmsRequest} from "@cores/request";
+import {Readable} from "stream";
 
 export interface KeyPair<T> { [key: string]: T }
 
@@ -10,11 +10,10 @@ export interface PmsBufferRange {
 }
 
 export type PmsBufferNode = PmsBufferRange & {
-    buffer?: Buffer,
-    waiter?: PmsRequest
+    stream: Readable
 }
 
-export type PmsBufferCallback = (buffer: Buffer, range: PmsBufferRange) => void;
+export type PmsBufferCallback = (stream: Readable, range: PmsBufferRange) => void;
 
 export const PromiseNoError = (p: Promise<any>): void => {
     p.then(() => {}).catch(() => {});

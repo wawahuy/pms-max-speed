@@ -1,5 +1,5 @@
 #!/bin/bash
 
-cp ../pms/dist/main.js ./bin/main.js
+cp ../pms/dist/win32.js ./bin/win32.js
 
 npm run build

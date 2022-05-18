@@ -7,6 +7,8 @@ export class PmsOkRuCached extends PmsCached  {
     private headerLasted: http.IncomingHttpHeaders;
     private headerContentLength: number;
 
+    private resolveWaitHeaders: (() => void)[] = [];
+
     get maxOffset() {
         return this.headerContentLength;
     }
@@ -27,6 +29,15 @@ export class PmsOkRuCached extends PmsCached  {
         return this.request.url.replace(/bytes=(.*)-(.*)/, `bytes=${start}-${end}`)
     }
 
+    getHeaderWaiter() {
+        if (this.headerLasted) {
+            return;
+        }
+        return new Promise<void>(resolve => {
+            this.resolveWaitHeaders.push(resolve);
+        })
+    }
+
     requestRange(range: PmsBufferRange) {
         const url = this.getUrlByRange(range);
         const option: PmsRequestInit = {
@@ -35,31 +46,28 @@ export class PmsOkRuCached extends PmsCached  {
             retry: 3
         }
         const request = new PmsRequest(url, option);
-        request.once('created', () => {
+        request.on('created', () => {
             const header = request.getHeaders();
             if (header) {
                 this.headerLasted = header;
                 this.headerContentLength = Number(header['content-range']?.split('/')?.[1]?.trim() || 0);
+                this.resolveWaitHeaders.forEach(cb => cb());
             }
         })
         return request;
     }
 
-    loadRanges(ranges: PmsBufferRange[]): PmsRequest[] {
+    async loadRanges(ranges: PmsBufferRange[]) {
         console.log(ranges);
-        return ranges.reduce<PmsRequest[]>((arr, range) => {
-            const start = range.start;
-            if (this.headerContentLength && start >= this.headerContentLength) {
-                return arr;
-            }
-
-            const end = Math.min(this.headerContentLength || range.end, range.end);
-
-            return arr.concat(this.loadRange({ start, end }));
-        }, []);
+        let result: PmsRequest[] = [];
+        for (const range of ranges) {
+            const nextRange = await this.loadRange(range);
+            result = result.concat(nextRange);
+        }
+        return result;
     }
 
-    loadRange(range: PmsBufferRange) {
+    async loadRange(range: PmsBufferRange) {
         const perSegment = 200 * 1024;
         const { start, end } = range;
         const req: PmsRequest[] = [];
@@ -74,9 +82,10 @@ export class PmsOkRuCached extends PmsCached  {
 
             const r = { start: s, end: e };
             const p = this.requestRange(r);
-            this.bufferTree.insertWaiter(r, p);
+            this.bufferTree.insertStream(r, p);
             req.push(p);
             currentSegment = e;
+            await new Promise(r => setTimeout(r, 10));
         } while (currentSegment < end);
 
         return req;

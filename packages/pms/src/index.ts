@@ -1,3 +1,5 @@
+process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = "0";
+
 import * as fs from "fs";
 import path from 'path';
 import child_process from 'child_process';
@@ -9,9 +11,9 @@ import {PPCa, PPCaFileOptions, PPCaOptions, PPPassThroughHttpHandler, PPServerPr
 import {PmsUiInjectModule} from "@analytics/ui";
 import {PmsServerAnalytics} from "@analytics/index";
 import {PmsRequest} from "@cores/request";
-import {PmsMotChillModule} from "@modules/motchill";
 import AVLTree from "avl";
 import {timer} from "@cores/helpers";
+import {Readable} from "stream";
 
 async function getHttpsOption() {
     let https: PPCaOptions = <any>{};

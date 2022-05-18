@@ -7,7 +7,7 @@ import nodejs from 'nodejs-mobile-react-native'
 
 const App = () => {
     useEffect(() => {
-        nodejs.start("main.js");
+        nodejs.startWithArgs("index.js --android");
         nodejs.channel.addListener(
             "message",
             (msg) => {

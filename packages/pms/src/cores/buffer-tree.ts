@@ -1,8 +1,8 @@
 import {AvlKeyDuplicate} from "@cores/avl-key-duplicate";
 import AVLTree, {Node} from "avl";
 import {PmsBufferCallback, PmsBufferNode, PmsBufferRange} from "@cores/types";
-import {PmsRequest} from "@cores/request";
-import {timer} from "@cores/helpers";
+import {Readable} from "stream";
+import {PmsFilterOffsetStream, PmsConcatStream} from "@cores/custom-stream";
 
 export class PmsBufferTree {
     private avlGetCallback: AvlKeyDuplicate<string, PmsBufferCallback>;
@@ -17,64 +17,33 @@ export class PmsBufferTree {
         return this.avlOffsetBuffer.max();
     }
 
-    insertWaiter(range: PmsBufferRange, waiter: PmsRequest) {
-        const node: PmsBufferNode = { ...range, waiter };
-        waiter.buffer()
-            .then(buffer => {
-                this.insertBuffer(range, buffer);
-            })
-            .catch(err => {
-                console.log(err);
-                console.log('failed load', range);
-                this.removeBuffer(range);
-            })
+    insertStream(range: PmsBufferRange, stream: Readable) {
+        const node: PmsBufferNode = { ...range, stream };
         return this.insertOrReplaceNode(node);
     }
 
     insertBuffer(range: PmsBufferRange, buffer: Buffer) {
-        // console.log('insert', range);
-        const node: PmsBufferNode = { ...range, buffer };
+        const stream = Readable.from(buffer);
+        const node: PmsBufferNode = { ...range, stream };
         return this.insertOrReplaceNode(node);
     }
 
-    removeBuffer(range: PmsBufferRange) {
-        // console.log('remove', range);
-        const prev = this.avlOffsetBuffer.nodeBeforeKey(range.start);
-        if (prev?.data) {
-            const dataPrev = prev.data;
-            if (dataPrev.end >= range.start) {
-                this.avlOffsetBuffer.remove(dataPrev.end);
-                dataPrev.end = range.start - 1;
-                this.avlOffsetBuffer.insert(dataPrev.end, dataPrev);
-            }
-        }
-
-        const next = this.avlOffsetBuffer.nodeAfterKey(range.end);
-        if (next?.data) {
-            const dataNext = next.data;
-            if (dataNext.start <= range.end) {
-                this.avlOffsetBuffer.remove(dataNext.start);
-                dataNext.start = range.end + 1;
-                this.avlOffsetBuffer.insert(dataNext.start, dataNext);
-            }
-        }
-
-        const nodesInRange = this.nodeInRange(range);
-        nodesInRange.forEach(node => {
-            this.avlOffsetBuffer.remove(node.key || 0)
+    remove(range: PmsBufferRange) {
+        const nodes = this.getNodeNecessary(range);
+        nodes.forEach(node => {
+            this.avlOffsetBuffer.remove(node.start);
+            this.avlOffsetBuffer.remove(node.end);
         })
     }
 
     private insertOrReplaceNode(node: PmsBufferNode) {
         if (node.start >= node.end) {
-            // throw  this.debug();
             throw "hmm... " + node.start + ' -> ' + node.end;
         }
 
         const nodesExists = this.nodeInRange(node as PmsBufferRange);
-        // console.log(nodesExists.map(n => [n.data?.start, n.data?.end]));
         if (nodesExists?.length) {
-            this.removeBuffer({ start: node.start, end: node.end });
+            this.remove({ start: node.start, end: node.end });
             this.insertOrReplaceNode(node);
         } else {
             this.avlOffsetBuffer.insert(node.start, node);
@@ -84,24 +53,20 @@ export class PmsBufferTree {
         return true;
     }
 
-    waitBuffer(range: PmsBufferRange, callback: PmsBufferCallback) {
+    wait(range: PmsBufferRange, callback: PmsBufferCallback) {
         const key = range.start + '_' + range.end;
-        const buffer = this.get(range);
-        if (buffer) {
-            callback(buffer, {...range});
+        const stream = this.get(range);
+        if (stream) {
+            callback(stream, {...range});
             return;
         }
 
         this.avlGetCallback.add(key, callback);
     }
 
-    getNoDataRanges(range: PmsBufferRange, isWaiterNotData?: boolean) {
+    getNoDataRanges(range: PmsBufferRange) {
         const ranges: PmsBufferRange[] = [];
         let nodes = this.nodeInRange(range);
-        if (isWaiterNotData) {
-            nodes = nodes.filter(node => !node.data?.waiter);
-        }
-
         let offsetCurrent: number = range.start;
         let iNode = 0;
         while (iNode < nodes.length) {
@@ -141,12 +106,9 @@ export class PmsBufferTree {
         return ranges;
     }
 
-    has(range: PmsBufferRange, includeWaiter?: boolean, nodes?: PmsBufferNode[]): boolean {
+    has(range: PmsBufferRange, nodes?: PmsBufferNode[]): boolean {
         if (!nodes) {
             nodes = this.getNodeNecessary(range);
-        }
-        if (!includeWaiter) {
-            nodes = nodes.filter(node => !node.waiter);
         }
         if (
             !nodes.length ||
@@ -159,21 +121,22 @@ export class PmsBufferTree {
         return true;
     }
 
-    get(range: PmsBufferRange): Buffer | null {
+    get(range: PmsBufferRange): Readable | null {
         const nodes = this.getNodeNecessary(range);
-        if (!this.has(range, false, nodes)) {
+        if (!this.has(range, nodes)) {
             return null;
         }
-        const buffers = nodes.reduce<Buffer[]>((list, bufferNode) => {
-            if (bufferNode.buffer) {
-                list.push(bufferNode.buffer);
+        const streams = nodes.reduce<Readable[]>((list, bufferNode) => {
+            if (bufferNode.stream) {
+                list.push(bufferNode.stream);
             }
             return list;
         }, []);
-        const buffer = Buffer.concat(buffers);
+
+        const concatStream = new PmsConcatStream(...streams);
         const start = range.start - nodes[0].start;
-        const end = start + (range.end - range.start) + 1;
-        const result = buffer.slice(start, end);
+        const len = range.end - range.start;
+        const result = concatStream.pipe(new PmsFilterOffsetStream({ start, len }));
         return result;
     }
 
@@ -200,20 +163,16 @@ export class PmsBufferTree {
 
             const start = Number(range[0]);
             const end = Number(range[1]);
-            const buffer = this.get({ start, end });
-            if (buffer) {
+            const stream = this.get({ start, end });
+
+            if (stream) {
+                this.remove({start, end})
                 if (node.key) {
                     removeKeys.push(node.key);
                 }
                 node.data?.forEach(callback => {
-                    callback(buffer, { start, end });
+                    callback(stream, { start, end });
                 })
-
-                /**
-                 * need add ttl or maxSizeBuffer
-                 * tmp delete buffer
-                 */
-                this.removeBuffer({start, end})
             }
         })
 

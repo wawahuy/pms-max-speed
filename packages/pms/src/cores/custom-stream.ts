@@ -1,4 +1,4 @@
-import {PassThrough, Readable} from "stream";
+import {Duplex, PassThrough, Readable} from "stream";
 
 
 export class PmsConcatStream extends PassThrough {
@@ -25,5 +25,23 @@ export class PmsConcatStream extends PassThrough {
                 this.nextReadable();
             }
         })
+    }
+}
+
+export class PmsFilterOffsetStream extends Duplex {
+
+    constructor(private options: { start?: number; len?: number }) {
+        super();
+    }
+
+    _read(size?: number) {}
+
+    _write(chunk: any, encoding: BufferEncoding, callback: () => void) {
+        this.push(chunk);
+        callback();
+    }
+
+    _final() {
+        this.push(null);
     }
 }

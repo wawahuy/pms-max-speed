@@ -3,6 +3,7 @@ import {PmsBufferCallback, PmsBufferRange} from "@cores/types";
 import {PmsBufferTree} from "@cores/buffer-tree";
 import {PmsRequest} from "@cores/request";
 import {PPServerRequest} from "pms-proxy";
+import {log} from "@cores/logger";
 
 export abstract class PmsCached {
     protected request: PPServerRequest;
@@ -17,23 +18,27 @@ export abstract class PmsCached {
         this.bufferTree = new PmsBufferTree();
     }
 
-    abstract loadRanges(ranges: PmsBufferRange[]): PmsRequest[];
+    abstract loadRanges(ranges: PmsBufferRange[]): Promise<PmsRequest[]>;
     abstract release(): void;
 
-    getBuffer(range: PmsBufferRange, callback: PmsBufferCallback) {
+    wait(range: PmsBufferRange, callback: PmsBufferCallback) {
         console.log('----------------')
         console.log(this.request.url);
         console.log('load', this.id);
 
-        if (!this.bufferTree.has(range, true)) {
+        if (!this.bufferTree.has(range)) {
             const { start, end } = range;
             const e = end || Math.max(start + 10 * 1024 * 1024, end);
-            this.loadRanges(this.bufferTree.getNoDataRanges({ start, end: e }, false));
+            this.loadRanges(this.bufferTree.getNoDataRanges({ start, end: e }))
+                .catch(e => {
+                    log.info(e);
+                })
             console.log('add waiter');
         } else {
             console.log('no load', this.id);
+            console.log(this.debug())
         }
-        return this.bufferTree.waitBuffer(range, callback);
+        return this.bufferTree.wait(range, callback);
     }
 
     setRequest(request: PPServerRequest) {

@@ -2,6 +2,8 @@
 #
 .DS_Store
 
+nodejs-assets/nodejs-project/android.js
+
 # Xcode
 #
 build/

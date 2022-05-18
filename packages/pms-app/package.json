@@ -2,10 +2,10 @@
   "name": "pms-app",
   "version": "1.0.0",
   "description": "",
-  "main": "bin/main.js",
-  "bin": "bin/main.js",
+  "main": "bin/win32.js",
+  "bin": "bin/win32.js",
   "scripts": {
-    "start": "node bin/index.js",
+    "start": "node bin/win32.js",
     "build": "pkg ."
   },
   "pkg": {
