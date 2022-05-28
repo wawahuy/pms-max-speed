@@ -123,12 +123,14 @@ async function getHttpsOption() {
         //     res.destroy();
         //     return;
         // }
+        console.log(req.url);
         const p = new PPPassThroughHttpHandler(false);
-        // p.injectBuffer((r, b) => {
-        //     return {
-        //         data: b,
-        //     }
-        // })
+        p.injectBuffer((r, b) => {
+            console.log(req.url, b.length);
+            return {
+                data: b,
+            }
+        })
         await p.handle(req, res);
     })
 

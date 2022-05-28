@@ -1,6 +1,0 @@
-{
-  "watch": ["build/Debug", "build/Release", "test"],
-  "ext": ".ts,.js,.node,.lib",
-  "ignore": [],
-  "exec": "node ./test/test.js"
-}
