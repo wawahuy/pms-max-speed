@@ -1,4 +1,13 @@
-import {PPCallbackHttpHandler, PPHttpRule, PPServerRequest, PPServerResponse} from "pms-proxy";
+import {
+    PPCallbackHttpHandler,
+    PPHttpRule,
+    PPPassThroughHttpHandler,
+    PPServerRequest,
+    PPServerResponse
+} from "pms-proxy";
+import {IPmsCodeMatcher, PmsCodeMatcher, PmsCodeMatcherOption} from "@cores/code-matcher";
+import {log} from "@cores/logger";
+import {AtLeastOne, PromiseNoError} from "@cores/types";
 
 export abstract class PmsModule {
     private static id: number = 0;
@@ -9,6 +18,7 @@ export abstract class PmsModule {
         protected request: PPServerRequest,
         protected response: PPServerResponse
     ) {
+        this.initBefore();
         this.init();
     }
 
@@ -20,4 +30,82 @@ export abstract class PmsModule {
     }
 
     public abstract init(): void;
+
+    protected initBefore() {
+    };
+}
+
+
+/***
+ * Pms Base Inject Module
+ *
+ */
+
+// @ts-ignore
+export type CodeMatcherItem<T, V> = Partial<{ [key in V]: T }>
+
+export type CodeMatcherConfig = { code: string } & AtLeastOne<
+    { [key in keyof IPmsCodeMatcher]: string } &
+    {
+        replaceCallback: (source: string, match: string) => string
+    }
+    >;
+
+export abstract class PmsInjectModule<E> extends PmsModule {
+    private codeMatcher: CodeMatcherItem<PmsCodeMatcher, E>;
+    private codeConfig: CodeMatcherItem<CodeMatcherConfig, E>;
+
+    protected abstract getConfig(): CodeMatcherItem<CodeMatcherConfig, E>;
+
+    protected initBefore() {
+        this.codeConfig = this.getConfig();
+        this.buildCodeMatcher();
+    }
+
+    init(): void {
+        const handler = new PPPassThroughHttpHandler(true, true);
+        handler.injectBuffer((request, buffer) => {
+            return {
+                data: this.editSource(buffer.toString())
+            }
+        })
+        PromiseNoError(handler.handle(this.request, this.response));
+    }
+
+    buildCodeMatcher() {
+        this.codeMatcher = {};
+        const option: PmsCodeMatcherOption = { trim: true };
+        const keys = Object.keys(this.codeConfig) as unknown[] as E[];
+        keys.forEach(key => {
+            const c = this.codeConfig[key];
+            if (c) {
+                this.codeMatcher[key] = new PmsCodeMatcher(c.code, option);
+            }
+        })
+    }
+
+    private editSource(source: string) {
+        const keys = Object.keys(this.codeConfig) as unknown[] as E[];
+        keys.forEach(key => {
+            const matcher = this.codeMatcher[key];
+            const config = this.codeConfig[key];
+            if (!matcher || !config) {
+                log.error('Matcher or config undefined');
+                return;
+            }
+            if (config.replace) {
+                source = matcher.replace(source, config.replace);
+            } else if (config.injectAfter) {
+                source = matcher.injectAfter(source, config.injectAfter);
+            } else if (config.injectBefore) {
+                source = matcher.injectBefore(source, config.injectBefore);
+            } else if (config.replaceCallback) {
+                // @ts-ignore
+                source = matcher.replaceCallback(source, match => config.replaceCallback(source, match))
+            } else {
+                log.error('Matcher no support config');
+            }
+        })
+        return source;
+    }
 }
