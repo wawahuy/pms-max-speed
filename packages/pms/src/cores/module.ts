@@ -1,14 +1,21 @@
 import {
-    PPCallbackHttpHandler,
+    PPCallbackHttpHandler, PPCallbackWsHandler,
     PPHttpRule,
     PPPassThroughHttpHandler,
     PPServerRequest,
-    PPServerResponse
+    PPServerResponse, PPWebsocket
 } from "pms-proxy";
 import {IPmsCodeMatcher, PmsCodeMatcher, PmsCodeMatcherOption} from "@cores/code-matcher";
 import {log} from "@cores/logger";
 import {AtLeastOne, PromiseNoError} from "@cores/types";
 
+/**
+ * --------------------------------------------
+ * Pms Module
+ * - support handle http connection
+ *
+ * --------------------------------------------
+ */
 export abstract class PmsModule {
     private static id: number = 0;
 
@@ -37,10 +44,12 @@ export abstract class PmsModule {
 
 
 /***
+ * --------------------------------------------
  * Pms Base Inject Module
+ * - support inject code on body
  *
+ * --------------------------------------------
  */
-
 // @ts-ignore
 export type CodeMatcherItem<T, V> = Partial<{ [key in V]: T }>
 
@@ -109,3 +118,38 @@ export abstract class PmsInjectModule<E> extends PmsModule {
         return source;
     }
 }
+
+
+/**
+ * ---------------------------------------------
+ * Pms Websocket Module
+ * - Support Websocket module
+ *
+ * ---------------------------------------------
+ */
+export abstract class PmsWsModule {
+    private static id: number = 0;
+
+    protected id = PmsWsModule.id++;
+
+    protected constructor(
+        protected request: PPServerRequest,
+        protected ws: PPWebsocket
+    ) {
+        this.initBefore();
+        this.init();
+    }
+
+    static rule: () => PPHttpRule;
+    static create<T extends PmsWsModule>(clazz: new (...args: any[]) => T, ...args: any[]): PPCallbackWsHandler {
+        return (req, ws) => {
+            new clazz(req, ws);
+        }
+    }
+
+    public abstract init(): void;
+
+    protected initBefore() {
+    };
+}
+

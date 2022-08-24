@@ -1,5 +1,3 @@
-import {PmsHydraxInjectBundleModule} from "@modules/hydrax/inject-bundle";
-
 process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = "0";
 
 import * as fs from "fs";
@@ -13,7 +11,6 @@ import {
     PPCa,
     PPCaFileOptions,
     PPCaOptions,
-    PPPassThroughHttpHandler,
     PPPassThroughWsHandler,
     PPServerProxy
 } from "pms-proxy";
@@ -21,6 +18,7 @@ import {PmsUiInjectModule} from "@analytics/ui";
 import {PmsServerAnalytics} from "@analytics/index";
 import crypto from "crypto";
 import {PmsHydraxInjectHydraxModule} from "@modules/hydrax/inject-hydrax";
+import {PmsHydraxInjectBundleModule} from "@modules/hydrax/inject-bundle";
 
 async function getHttpsOption() {
     let https: PPCaOptions = <any>{};
@@ -65,6 +63,10 @@ async function getHttpsOption() {
         https
     })
 
+    /**
+     * Module HTTP Connection
+     *
+     */
     const modules = [
         PmsUiInjectModule,
         PmsOkRuModule,
@@ -75,6 +77,13 @@ async function getHttpsOption() {
     modules.map(moduleClazz => {
         return server.addRule(moduleClazz.rule()).then(PmsModule.create(moduleClazz));
     })
+
+    /**
+     * Module websocket
+     *
+     */
+
+
 
     /**
      * Analytics socket
@@ -96,7 +105,6 @@ async function getHttpsOption() {
         const injectWs = new PPPassThroughWsHandler();
         injectWs.injectSend(data => {
             const key = request.query['key']?.toString();
-            console.log(key)
             if (!key) {
                 return  data;
             }
@@ -105,7 +113,7 @@ async function getHttpsOption() {
                 if (data && data instanceof Buffer) {
                     const decipher = crypto.createDecipheriv("aes-256-ecb", key, null);
                     decipher.update(data.toString('binary'), "binary", "utf-8");
-                    console.log('++++++++++++', decipher.final("utf-8"));
+                    console.log('1++++++++++++', decipher.final("utf-8"));
                     return  Buffer.from(data.toString('binary'));
                 }
             } catch (e) {
@@ -113,6 +121,10 @@ async function getHttpsOption() {
             }
             // return  data;
             return  Buffer.from(data.toString('binary'));
+        })
+        injectWs.injectReceive(data => {
+            console.log('1++++revc', data.slice(0, 10));
+            return data;
         })
         injectWs.handle(request, ws);
     });
