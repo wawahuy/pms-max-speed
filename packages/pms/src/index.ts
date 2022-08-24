@@ -24,23 +24,7 @@ async function getHttpsOption() {
     let https: PPCaOptions = <any>{};
 
     if (process.env.NODE_ENV == 'production') {
-        if (process.env.type == 'android') {
-            // for Android
-            const caPath = path.join(configs.rootAppDir, 'ca');
-            https = {
-                keyPath: caPath + '.key',
-                certPath: caPath + '.cert'
-            }
-
-            if (!fs.existsSync(https.keyPath) || !fs.existsSync(https.certPath) ) {
-                const n = await PPCa.generateCACertificate();
-                fs.writeFileSync(https.keyPath, n.key);
-                fs.writeFileSync(https.certPath, n.cert);
-                // android emit new CA
-                const rn = require('rn-bridge');
-                rn.channel.send('NewCA');
-            }
-        } else if (process.env.type == 'win32') {
+        if (process.env.type == 'win32') {
             // for Windows
             https = await PPCa.generateCACertificate();
         } else {
@@ -146,11 +130,7 @@ async function getHttpsOption() {
             process.on('exit', () => {
                 proc.kill();
             })
-        } else if (process.env.type == 'android') {
-            // for Android
-            const rn = require('rn-bridge');
-            rn.channel.send('ServerStarted')
-        }
+        } 
     }
 
     log.info(`Server proxy running on port ${configs.proxyPort}`);
