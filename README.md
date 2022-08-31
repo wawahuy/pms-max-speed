@@ -8,5 +8,15 @@
 # Maintenance: 24/08/2022
 + Bug fix hang network
 + New project is DLL hooking proxy in google chrome (C++, Win32API)
+
 # Maintenance: 31/08/2022
 + Support V2Ray
+
+# Use
++ NodeJS (Main)
++ VueJS (Web Manager), ReactJS (Hook analytics ui)
++ C++ (Chrome bypass proxy)
++ V2Ray (Proxy bypass 4g)
++ PMS Proxy (Mitm proxy)
++ Webpack, Pkg (Build-tools)
++ 
