@@ -1,3 +1,5 @@
+import {glob} from "glob";
+
 process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = "0";
 
 import * as fs from "fs";
@@ -10,7 +12,7 @@ import {log} from "@cores/logger";
 import {
     PPCa,
     PPCaFileOptions,
-    PPCaOptions,
+    PPCaOptions, PPPassThroughHttpHandler,
     PPPassThroughWsHandler,
     PPServerProxy
 } from "pms-proxy";
@@ -19,6 +21,8 @@ import {PmsServerAnalytics} from "@analytics/index";
 import crypto from "crypto";
 import {PmsHydraxInjectHydraxModule} from "@modules/hydrax/inject-hydrax";
 import {PmsHydraxInjectBundleModule} from "@modules/hydrax/inject-bundle";
+import {V2Ray} from "@cores/v2ray";
+import {PmsRequest} from "@cores/request";
 
 async function getHttpsOption() {
     let https: PPCaOptions = <any>{};
@@ -40,12 +44,48 @@ async function getHttpsOption() {
     return https;
 }
 
+function runV2RayClient() {
+    return new Promise<void>(resolve => {
+        const dir = path.join(configs.configV2RayDirectory, '*.json').replace(/\\/g, '/');
+        log.info('v2ray config directory: ' + dir);
+        glob(dir, {}, function (er, files) {
+            if(er) {
+                log.error(er);
+                return;
+            }
+            files.forEach(file => {
+                log.info('v2ray: ' + file);
+                new V2Ray(file);
+                resolve();
+            })
+        })
+    })
+}
+
 (async () => {
     const https: PPCaOptions = await getHttpsOption();
 
     const server = new PPServerProxy({
         https
     })
+
+    /**
+     * Start V2Ray
+     *
+     */
+    await runV2RayClient();
+    // PPPassThroughHttpHandler.agents = Object.values(V2Ray.getClients()).map(client => {
+    //     console.log(client.proxyUrls[0])
+    //     return client.proxyAgents[0];
+    // });
+    // PmsRequest.agents = Object.values(V2Ray.getClients()).map(client => {
+    //     console.log(client.proxyUrls[0])
+    //     return client.proxyAgents[0];
+    // });
+
+    PPPassThroughHttpHandler.agents = V2Ray.getClientByFile('own.json').proxyAgents;
+    PPPassThroughWsHandler.agents = V2Ray.getClientByFile('own.json').proxyAgents;
+    PmsRequest.agents = V2Ray.getClientByFile('own.json').proxyAgents;
 
     /**
      * Module HTTP Connection
@@ -77,41 +117,6 @@ async function getHttpsOption() {
         .addRule()
         .url(PmsServerAnalytics.mathHost)
         .then(PmsServerAnalytics.instance);
-
-    /**
-     * Zone test
-     *
-     */
-
-    server.getWebsocket().addRule().host([
-        /.+\.websocketgate\.com/gmi,
-    ]).then((request, ws) => {
-        const injectWs = new PPPassThroughWsHandler();
-        injectWs.injectSend(data => {
-            const key = request.query['key']?.toString();
-            if (!key) {
-                return  data;
-            }
-
-            try {
-                if (data && data instanceof Buffer) {
-                    const decipher = crypto.createDecipheriv("aes-256-ecb", key, null);
-                    decipher.update(data.toString('binary'), "binary", "utf-8");
-                    console.log('1++++++++++++', decipher.final("utf-8"));
-                    return  Buffer.from(data.toString('binary'));
-                }
-            } catch (e) {
-                console.log(e);
-            }
-            // return  data;
-            return  Buffer.from(data.toString('binary'));
-        })
-        injectWs.injectReceive(data => {
-            console.log('1++++revc', data.slice(0, 10));
-            return data;
-        })
-        injectWs.handle(request, ws);
-    });
 
     await server.listen(configs.proxyPort);
 

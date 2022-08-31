@@ -6,6 +6,7 @@ import {PmsServerAnalytics} from "@analytics/index";
 import {log} from "@cores/logger";
 import {IncomingHttpHeaders} from "http";
 import {PromiseNoError} from "@cores/types";
+import { SocksProxyAgent } from 'socks-proxy-agent';
 
 const AbortController = globalThis.AbortController || AbortControllerLib;
 
@@ -21,8 +22,15 @@ export declare interface PmsRequest {
     once(event: string, listener: Function): this;
 }
 
+const agent = [
+    new SocksProxyAgent("socks://localhost:10808"),
+];
+
 export class PmsRequest extends Readable {
-    private static readonly maxRequest: number = 30;
+    public static agents: SocksProxyAgent[];
+    public static agentCurrent = 0;
+
+    private static readonly maxRequest: number = 1000;
     public static readonly mutex: PmsParallelMutex = new PmsParallelMutex(PmsRequest.maxRequest);
     private response: Response;
     private abortController: AbortController;
@@ -57,6 +65,14 @@ export class PmsRequest extends Readable {
             analytics.analyticsRequestQueue(1);
             await mutex.acquire();
             analytics.analyticsRequest(-1, 1)
+
+            if (PmsRequest.agents?.length) {
+                const agent = PmsRequest.agents[PmsRequest.agentCurrent++];
+                if (PmsRequest.agentCurrent >= PmsRequest.agents.length) {
+                    PmsRequest.agentCurrent = 0;
+                }
+                this.requestInit.agent = agent;
+            }
 
             const response = await fetch(this.requestInfo, this.requestInit);
             response.body.on('data', (chunk) => {

@@ -68,7 +68,7 @@ export class PmsOkRuCached extends PmsCached  {
     }
 
     async loadRange(range: PmsBufferRange) {
-        const perSegment = 200 * 1024;
+        const perSegment = 70 * 1024;
         const { start, end } = range;
         const req: PmsRequest[] = [];
         let currentSegment = start - 1;

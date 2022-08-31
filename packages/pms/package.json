@@ -42,10 +42,12 @@
   "dependencies": {
     "abort-controller": "^3.0.0",
     "avl": "file:../avl",
+    "glob": "^8.0.3",
     "node-fetch": "^2.6.7",
     "pms-proxy": "file:../pms-proxy",
     "pms-ui-inject": "file:../pms-ui-inject",
     "rxjs": "^7.5.5",
+    "socks-proxy-agent": "^7.0.0",
     "winston": "^3.7.2"
   }
 }
