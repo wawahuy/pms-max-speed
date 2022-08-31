@@ -2,8 +2,10 @@
 + support ok.ru (tvhai.org, xemphimvn2.com, ...)
 
 # PMS Project
-+ Main: https://github.com/wawahuy/pirated-max-speed/tree/main/packages/pms
-+ Win32: https://github.com/wawahuy/pirated-max-speed/tree/main/packages/pms-win32
++ <a href='https://github.com/wawahuy/pirated-max-speed/tree/main/packages/pms'>Main</a>
++ <a href='https://github.com/wawahuy/pirated-max-speed/tree/main/packages/pms-win32'>Win32</a>
++ <a href='https://github.com/wawahuy/pirated-max-speed/tree/main/packages/pms-manager'>Web Manager</a>
++ <a href='https://github.com/wawahuy/pirated-max-speed/tree/main/packages/pms-ui-inject'>UI Inject</a>
 
 # Use
 + NodeJS (Main)
