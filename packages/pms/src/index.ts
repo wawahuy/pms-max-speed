@@ -74,15 +74,6 @@ function runV2RayClient() {
      *
      */
     await runV2RayClient();
-    // PPPassThroughHttpHandler.agents = Object.values(V2Ray.getClients()).map(client => {
-    //     console.log(client.proxyUrls[0])
-    //     return client.proxyAgents[0];
-    // });
-    // PmsRequest.agents = Object.values(V2Ray.getClients()).map(client => {
-    //     console.log(client.proxyUrls[0])
-    //     return client.proxyAgents[0];
-    // });
-
     PPPassThroughHttpHandler.agents = V2Ray.getClientByFile('own.json').proxyAgents;
     PPPassThroughWsHandler.agents = V2Ray.getClientByFile('own.json').proxyAgents;
     PmsRequest.agents = V2Ray.getClientByFile('own.json').proxyAgents;

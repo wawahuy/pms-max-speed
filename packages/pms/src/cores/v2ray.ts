@@ -57,7 +57,7 @@ export class V2Ray {
         V2Ray.clients[name] = this;
 
         this.process.stdout.on('data', (chunk) => {
-            // log.info('v2ray: ' + chunk.toString());
+            log.info('v2ray: ' + chunk.toString());
         });
 
         this.process.stderr.on('error', (err) => {
