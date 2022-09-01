@@ -23,6 +23,7 @@ import {PmsHydraxInjectHydraxModule} from "@modules/hydrax/inject-hydrax";
 import {PmsHydraxInjectBundleModule} from "@modules/hydrax/inject-bundle";
 import {V2Ray} from "@cores/v2ray";
 import {PmsRequest} from "@cores/request";
+import {WebManager} from "./managers";
 
 async function getHttpsOption() {
     let https: PPCaOptions = <any>{};
@@ -74,9 +75,11 @@ function runV2RayClient() {
      *
      */
     await runV2RayClient();
-    PPPassThroughHttpHandler.agents = V2Ray.getClientByFile('own.json').proxyAgents;
-    PPPassThroughWsHandler.agents = V2Ray.getClientByFile('own.json').proxyAgents;
-    PmsRequest.agents = V2Ray.getClientByFile('own.json').proxyAgents;
+    const agentGlobal = V2Ray.getClientByFile('own.json').proxyAgents;
+    PPPassThroughHttpHandler.agents
+        = PPPassThroughWsHandler.agents
+        = PmsRequest.agents
+        = agentGlobal;
 
     /**
      * Module HTTP Connection
@@ -109,6 +112,17 @@ function runV2RayClient() {
         .url(PmsServerAnalytics.mathHost)
         .then(PmsServerAnalytics.instance);
 
+    /**
+     * Web Manager
+     *
+     */
+    const webManager = new WebManager(server);
+    webManager.listen();
+
+    /**
+     * Listen
+     *
+     */
     await server.listen(configs.proxyPort);
 
     if (process.env.NODE_ENV == 'production') {
