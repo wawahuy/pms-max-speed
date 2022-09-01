@@ -2,10 +2,16 @@
 + support ok.ru (tvhai.org, xemphimvn2.com, ...)
 
 # PMS Project
-+ Main: https://github.com/wawahuy/pirated-max-speed/tree/main/packages/pms
-+ Win32: https://github.com/wawahuy/pirated-max-speed/tree/main/packages/pms-win32
++ <a href='https://github.com/wawahuy/pirated-max-speed/tree/main/packages/pms'>Main</a>
++ <a href='https://github.com/wawahuy/pirated-max-speed/tree/main/packages/pms-win32'>Win32</a>
++ <a href='https://github.com/wawahuy/pirated-max-speed/tree/main/packages/pms-manager'>Web Manager</a>
++ <a href='https://github.com/wawahuy/pirated-max-speed/tree/main/packages/pms-ui-inject'>UI Inject</a>
 
-# Maintenance:  24/08/2022
-+ Bug fix hang network
-+ New project is DLL hooking proxy in google chrome (C++, Win32API)
-+ P2P network film
+# Use
++ NodeJS (Main)
++ VueJS (Web Manager), ReactJS (Hook analytics ui)
++ C++ (Chrome bypass proxy)
++ V2Ray (Proxy bypass 4g)
++ PMS Proxy (Mitm proxy)
++ Webpack, Pkg (Build-tools)
++ 
