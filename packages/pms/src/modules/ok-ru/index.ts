@@ -21,16 +21,11 @@ export class PmsOkRuModule extends PmsModule {
     }
 
     init() {
-        let hasResponse = false
         this.request.on('error', () => {
             console.log('request error');
-            if (!hasResponse) {
-            }
         })
         this.request.on('close', () => {
             console.log('request close');
-            if (!hasResponse) {
-            }
         })
         this.url = Url.parse(this.request.url, true);
 
@@ -47,7 +42,6 @@ export class PmsOkRuModule extends PmsModule {
         if (cached) {
             const range: PmsBufferRange = { start: this.startSegment, end: this.endSegment };
             cached.wait(range, async stream => {
-                hasResponse = true;
                 console.log('---------res-----------')
                 console.log(range, this.id);
                 console.log(this.request.url);

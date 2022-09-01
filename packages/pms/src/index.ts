@@ -119,6 +119,25 @@ function runV2RayClient() {
     const webManager = new WebManager(server);
     webManager.listen();
 
+    // server.addRule()
+    //     .any()
+    //     .then(async (request, response) => {
+    //         console.log(request.method, request.url);
+    //         // console.log(request.body);
+    //
+    //         const passThrough = new PPPassThroughHttpHandler();
+    //         passThrough.injectBuffer((request, buffer) => {
+    //             try {
+    //                 const b = JSON.parse(buffer.toString('utf-8'));
+    //                 //console.log(b);
+    //             } catch (e) {
+    //                 // console.log('--> ', (buffer.toString('utf-8')));
+    //             }
+    //             return { data: buffer };
+    //         })
+    //         await passThrough.handle(request, response);
+    //     });
+
     /**
      * Listen
      *

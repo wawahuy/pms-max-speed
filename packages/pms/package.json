@@ -48,6 +48,7 @@
     "pms-ui-inject": "file:../pms-ui-inject",
     "rxjs": "^7.5.5",
     "socks-proxy-agent": "^7.0.0",
+    "tsyringe": "^4.7.0",
     "winston": "^3.7.2"
   }
 }
