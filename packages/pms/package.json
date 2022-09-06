@@ -43,12 +43,13 @@
     "abort-controller": "^3.0.0",
     "avl": "file:../avl",
     "glob": "^8.0.3",
+    "inversify": "^6.0.1",
     "node-fetch": "^2.6.7",
     "pms-proxy": "file:../pms-proxy",
     "pms-ui-inject": "file:../pms-ui-inject",
+    "reflect-metadata": "^0.1.13",
     "rxjs": "^7.5.5",
     "socks-proxy-agent": "^7.0.0",
-    "tsyringe": "^4.7.0",
     "winston": "^3.7.2"
   }
 }

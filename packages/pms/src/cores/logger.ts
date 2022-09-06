@@ -1,7 +1,7 @@
 import winston from "winston";
 import path from "path";
 import {configs} from "../config";
-
+import {injectable} from "inversify";
 
 export const log = winston.createLogger({
     format: winston.format.combine(
@@ -25,3 +25,17 @@ export const log = winston.createLogger({
         })
     ],
 })
+
+@injectable()
+export class Logger {
+    constructor() {
+    }
+
+    info(...data: any[]) {
+        log.info(data.join(' '));
+    }
+
+    error(data: any) {
+        log.error(data);
+    }
+}

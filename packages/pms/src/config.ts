@@ -1,4 +1,5 @@
 import * as path from "path";
+import {injectable} from "inversify";
 
 const getRootAppDir = () => {
     if (process.env.NODE_ENV == 'production') {
